@@ -456,6 +456,8 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		}
 		strlcpy(buf, cp, sizeof(buf));
 
+#ifndef ANDROID
+	    /* /data is owned by system user, which causes this check to fail */
 		if (stat(buf, &st) < 0 ||
 		    (st.st_uid != 0 && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
@@ -463,7 +465,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			    "bad ownership or modes for directory %s", buf);
 			return -1;
 		}
-
+#endif
 		/* If are past the homedir then we can stop */
 		if (comparehome && strcmp(homedir, buf) == 0)
 			break;

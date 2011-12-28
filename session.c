@@ -1496,7 +1496,10 @@ do_setusercontext(struct passwd *pw)
 			perror("initgroups");
 			exit(1);
 		}
+#ifndef ANDROID
+		/* FIXME - Android doesn't have this */
 		endgrent();
+#endif
 #endif
 
 		platform_setusercontext_post_groups(pw);
