@@ -259,7 +259,9 @@ mm_getpwnamallow(const char *username)
 		fatal("%s: struct passwd size mismatch", __func__);
 	pw->pw_name = buffer_get_string(&m, NULL);
 	pw->pw_passwd = buffer_get_string(&m, NULL);
+#ifdef HAVE_PW_GECOS_IN_PASSWD
 	pw->pw_gecos = buffer_get_string(&m, NULL);
+#endif
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	pw->pw_class = buffer_get_string(&m, NULL);
 #endif

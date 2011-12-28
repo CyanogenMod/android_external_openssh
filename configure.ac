@@ -3100,6 +3100,19 @@ if test "x$ac_cv_have_pw_change_in_struct_passwd" = "xyes" ; then
 		[Define if your password has a pw_change field])
 fi
 
+AC_CACHE_CHECK([for pw_gecos field in struct passwd],
+		ac_cv_have_pw_gecos_in_struct_passwd, [
+	AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[ #include <pwd.h> ]],
+	[[ struct passwd p; p.pw_gecos = 0; ]])],
+	[ ac_cv_have_pw_gecos_in_struct_passwd="yes" ],
+	[ ac_cv_have_pw_gecos_in_struct_passwd="no" 
+	])
+])
+if test "x$ac_cv_have_pw_gecos_in_struct_passwd" = "xyes" ; then
+	AC_DEFINE([HAVE_PW_GECOS_IN_PASSWD], [1],
+		[Define if your password has a pw_gecos field])
+fi
+
 dnl make sure we're using the real structure members and not defines
 AC_CACHE_CHECK([for msg_accrights field in struct msghdr],
 		ac_cv_have_accrights_in_msghdr, [

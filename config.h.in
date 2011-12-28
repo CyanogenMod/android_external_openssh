@@ -732,6 +732,9 @@
 /* Define if your password has a pw_change field */
 #undef HAVE_PW_CHANGE_IN_PASSWD
 
+/* Define if your password has a pw_gecos field */
+#undef HAVE_PW_GECOS_IN_PASSWD
+
 /* Define if your password has a pw_class field */
 #undef HAVE_PW_CLASS_IN_PASSWD
 
