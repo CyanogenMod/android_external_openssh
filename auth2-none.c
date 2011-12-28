@@ -61,8 +61,11 @@ userauth_none(Authctxt *authctxt)
 {
 	none_enabled = 0;
 	packet_check_eom();
+#ifndef ANDROID
+	/* no password authentication in android */
 	if (options.permit_empty_passwd && options.password_authentication)
 		return (PRIVSEP(auth_password(authctxt, "")));
+#endif
 	return (0);
 }
 

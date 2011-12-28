@@ -200,8 +200,13 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		return -1;
 	}
 
+#ifndef ANDROID
 	result = getrrsetbyname(hostname, DNS_RDATACLASS_IN,
 	    DNS_RDATATYPE_SSHFP, 0, &fingerprints);
+#else
+	/* unsupported in android */
+	result = -1;
+#endif
 	if (result) {
 		verbose("DNS lookup error: %s", dns_result_totext(result));
 		return -1;
@@ -220,7 +225,9 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	if (!dns_read_key(&hostkey_algorithm, &hostkey_digest_type,
 	    &hostkey_digest, &hostkey_digest_len, hostkey)) {
 		error("Error calculating host key fingerprint.");
+#ifndef ANDROID
 		freerrset(fingerprints);
+#endif
 		return -1;
 	}
 
@@ -255,7 +262,9 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	}
 
 	xfree(hostkey_digest); /* from key_fingerprint_raw() */
+#ifndef ANDROID
 	freerrset(fingerprints);
+#endif
 
 	if (*flags & DNS_VERIFY_FOUND)
 		if (*flags & DNS_VERIFY_MATCH)
