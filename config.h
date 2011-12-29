@@ -1535,3 +1535,5 @@
 #define SSHDIR "/data/ssh"
 
 #define _PATH_PRIVSEP_CHROOT_DIR "/data/ssh/empty"
+
+#define _PATH_SSH_PROGRAM "/system/bin/sftp"
