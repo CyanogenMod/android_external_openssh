@@ -16,7 +16,7 @@ LOCAL_SRC_FILES := \
     monitor_fdpass.c rijndael.c ssh-dss.c ssh-ecdsa.c ssh-rsa.c dh.c \
     kexdh.c kexgex.c kexdhc.c kexgexc.c bufec.c kexecdh.c kexecdhc.c \
     msg.c progressmeter.c dns.c entropy.c gss-genr.c umac.c jpake.c \
-    schnorr.c ssh-pkcs11.c \
+    schnorr.c ssh-pkcs11.c roaming_dummy.c \
     openbsd-compat/strtonum.c openbsd-compat/bsd-misc.c \
     openbsd-compat/timingsafe_bcmp.c openbsd-compat/bsd-getpeereid.c \
     openbsd-compat/readpassphrase.c openbsd-compat/vis.c \
@@ -26,7 +26,7 @@ LOCAL_SRC_FILES := \
     openbsd-compat/bsd-statvfs.c openbsd-compat/xmmap.c \
     openbsd-compat/port-linux.c openbsd-compat/strmode.c \
     openbsd-compat/bsd-openpty.c \
-    openbsd-compat/getgrouplist.c openbsd-compat/fmt_scaled.c \
+    openbsd-compat/fmt_scaled.c \
     openbsd-compat/pwcache.c openbsd-compat/glob.c
 
 #    openbsd-compat/getrrsetbyname.c
@@ -41,7 +41,7 @@ LOCAL_MODULE := libssh
 
 LOCAL_CFLAGS+=-O3
 
-include $(BUILD_STATIC_LIBRARY)
+include $(BUILD_SHARED_LIBRARY)
 
 ###################### ssh ######################
 
@@ -59,9 +59,7 @@ LOCAL_MODULE := ssh
 LOCAL_C_INCLUDES := external/openssl/include
 PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
-
-LOCAL_STATIC_LIBRARIES := libssh
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -79,9 +77,7 @@ LOCAL_MODULE := sftp
 LOCAL_C_INCLUDES := external/openssl/include
 PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
-
-LOCAL_STATIC_LIBRARIES := libssh
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -99,9 +95,7 @@ LOCAL_MODULE := scp
 LOCAL_C_INCLUDES := external/openssl/include
 PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
-
-LOCAL_STATIC_LIBRARIES := libssh
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -134,9 +128,7 @@ LOCAL_MODULE := sshd
 LOCAL_C_INCLUDES := external/openssl/include external/zlib
 PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
-
-LOCAL_STATIC_LIBRARIES := libssh
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -154,9 +146,7 @@ LOCAL_MODULE := ssh-keygen
 LOCAL_C_INCLUDES := external/openssl/include
 PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
-
-LOCAL_STATIC_LIBRARIES := libssh
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
