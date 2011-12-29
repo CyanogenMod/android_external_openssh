@@ -128,7 +128,7 @@ LOCAL_MODULE := sshd
 LOCAL_C_INCLUDES := external/openssl/include external/zlib
 PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz libcutils
 
 include $(BUILD_EXECUTABLE)
 
