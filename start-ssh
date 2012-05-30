@@ -1,5 +1,7 @@
 #!/system/bin/sh
 
+umask 077
+
 # DEBUG=1
 
 DSA_KEY=/data/ssh/ssh_host_dsa_key
