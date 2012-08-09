@@ -448,10 +448,10 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		if (getuid() != 0)
 #endif
 	    {
-			snprintf(err, errlen, "bad ownership or modes for file %s",
-				buf);
-			return -1;
-		}
+		snprintf(err, errlen, "bad ownership or modes for file %s",
+		    buf);
+		return -1;
+	}
 	}
 
 	/* for each component of the canonical path, walking upwards */
