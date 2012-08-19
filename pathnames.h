@@ -62,14 +62,22 @@
 #define _PATH_SSH_USER_DIR		".ssh"
 #endif
 
+#ifndef _PATH_SSH_USER_PREFIX
+#define _PATH_SSH_USER_PREFIX	"~"
+#endif
+
+#ifndef _PATH_ROOT_HOME_PREFIX
+#define _PATH_ROOT_HOME_PREFIX	"/data"
+#endif
+
 /*
  * Per-user file containing host keys of known hosts.  This file need not be
  * readable by anyone except the user him/herself, though this does not
  * contain anything particularly secret.
  */
-#define _PATH_SSH_USER_HOSTFILE		_PATH_SSH_USER_DIR "/known_hosts"
+#define _PATH_SSH_USER_HOSTFILE		_PATH_SSH_USER_PREFIX "/" _PATH_SSH_USER_DIR "/known_hosts"
 /* backward compat for protocol 2 */
-#define _PATH_SSH_USER_HOSTFILE2	_PATH_SSH_USER_DIR "/known_hosts2"
+#define _PATH_SSH_USER_HOSTFILE2	_PATH_SSH_USER_PREFIX "/" _PATH_SSH_USER_DIR "/known_hosts2"
 
 /*
  * Name of the default file containing client-side authentication key. This
