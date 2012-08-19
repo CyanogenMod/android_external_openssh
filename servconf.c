@@ -46,10 +46,6 @@
 #include "channels.h"
 #include "groupaccess.h"
 
-#ifdef ANDROID
-#include <cutils/properties.h>
-#endif
-
 static void add_listen_addr(ServerOptions *, char *, int);
 static void add_one_listen_addr(ServerOptions *, char *, int);
 
@@ -1459,18 +1455,9 @@ parse_server_match_config(ServerOptions *options, const char *user,
     const char *host, const char *address)
 {
 	ServerOptions mo;
-#ifdef ANDROID
-	char value[PROPERTY_VALUE_MAX];
-#endif
 
 	initialize_server_options(&mo);
 	parse_server_config(&mo, "reprocess config", &cfg, user, host, address);
-#ifdef ANDROID
-	/* Allow root login if ro.debuggable is set */
-	property_get("ro.debuggable", value, "");
-	if (strcmp(value, "1") == 0)
-		mo.permit_root_login = PERMIT_YES;
-#endif
 	copy_set_server_options(options, &mo, 0);
 }
 
