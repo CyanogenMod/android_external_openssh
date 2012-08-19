@@ -17,6 +17,9 @@
 /* Define if your resolver libs need this for getrrsetbyname */
 /* #undef BIND_8_COMPAT */
 
+/* The system has incomplete BSM API */
+/* #undef BROKEN_BSM_API */
+
 /* Define if cmsg_type is not passed correctly */
 /* #undef BROKEN_CMSG_TYPE */
 
@@ -503,6 +506,9 @@
 /* Define if HEADER.ad exists in arpa/nameser.h */
 #define HAVE_HEADER_AD 1
 
+/* Define to 1 if you have the `HMAC_CTX_init' function. */
+#define HAVE_HMAC_CTX_INIT 1
+
 /* Define if you have ut_host in utmp.h */
 #define HAVE_HOST_IN_UTMP 1
 
@@ -554,6 +560,9 @@
 /* Define to 1 if you have the <lastlog.h> header file. */
 #define HAVE_LASTLOG_H 1
 
+/* Define if you want ldns support */
+/* #undef HAVE_LDNS */
+
 /* Define to 1 if you have the <libaudit.h> header file. */
 /* #undef HAVE_LIBAUDIT_H */
 
@@ -596,10 +605,19 @@
 /* Define to 1 if you have the <limits.h> header file. */
 #define HAVE_LIMITS_H 1
 
+/* Define to 1 if you have the <linux/audit.h> header file. */
+#define HAVE_LINUX_AUDIT_H 1
+
+/* Define to 1 if you have the <linux/filter.h> header file. */
+#define HAVE_LINUX_FILTER_H 1
+
 /* Define to 1 if you have the <linux/if_tun.h> header file. */
 #define HAVE_LINUX_IF_TUN_H 1
 
-/* Define if your libraries define login() */
+/* Define to 1 if you have the <linux/seccomp.h> header file. */
+/* #undef HAVE_LINUX_SECCOMP_H */
+
+/* Define to 1 if you have the `login' function. */
 /* #define HAVE_LOGIN 1 */
 
 /* Define to 1 if you have the <login_cap.h> header file. */
@@ -935,6 +953,9 @@
 
 /* Define to 1 if you have the `strmode' function. */
 /* #undef HAVE_STRMODE */
+
+/* Define to 1 if you have the `strnlen' function. */
+#define HAVE_STRNLEN 1
 
 /* Define to 1 if you have the `strnvis' function. */
 /* #undef HAVE_STRNVIS */
@@ -1356,8 +1377,14 @@
 /* Sandbox using setrlimit(2) */
 #define SANDBOX_RLIMIT 1
 
+/* Sandbox using seccomp filter */
+/* #undef SANDBOX_SECCOMP_FILTER */
+
 /* Sandbox using systrace(4) */
 /* #undef SANDBOX_SYSTRACE */
+
+/* Specify the system call convention in use */
+#define SECCOMP_AUDIT_ARCH AUDIT_ARCH_ARM
 
 /* Define if your platform breaks doing a seteuid before a setuid */
 /* #undef SETEUID_BREAKS_SETUID */
@@ -1536,4 +1563,6 @@
 
 #define _PATH_PRIVSEP_CHROOT_DIR "/data/ssh/empty"
 
-#define _PATH_SSH_PROGRAM "/system/bin/sftp"
+#define _PATH_SSH_PROGRAM "/system/bin/ssh"
+
+#define _PATH_SSH_USER_DIR "/data/ssh_client"
