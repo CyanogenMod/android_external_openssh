@@ -1565,6 +1565,6 @@
 
 #define _PATH_SSH_PROGRAM "/system/bin/ssh"
 
-#define _PATH_SSH_USER_DIR "ssh_client"
+#define _PATH_SSH_USER_DIR ".ssh"
 
 #define _PATH_SSH_USER_PREFIX "/data"
