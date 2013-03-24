@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.94 2011/05/23 03:33:38 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.96 2012/05/13 01:42:32 dtucker Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -357,7 +357,8 @@ expand_authorized_keys(const char *filename, struct passwd *pw)
 char *
 authorized_principals_file(struct passwd *pw)
 {
-	if (options.authorized_principals_file == NULL)
+	if (options.authorized_principals_file == NULL ||
+	    strcasecmp(options.authorized_principals_file, "none") == 0)
 		return NULL;
 	return expand_authorized_keys(options.authorized_principals_file, pw);
 }
@@ -457,7 +458,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 		strlcpy(buf, cp, sizeof(buf));
 
 #ifndef ANDROID
-	    /* /data is owned by system user, which causes this check to fail */
+		/* /data is owned by system user, which causes this check to fail */
 		if (stat(buf, &st) < 0 ||
 		    (st.st_uid != 0 && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
@@ -466,6 +467,7 @@ secure_filename(FILE *f, const char *file, struct passwd *pw,
 			return -1;
 		}
 #endif
+
 		/* If are past the homedir then we can stop */
 		if (comparehome && strcmp(homedir, buf) == 0)
 			break;
@@ -546,9 +548,10 @@ getpwnamallow(const char *user)
 #endif
 #endif
 	struct passwd *pw;
+	struct connection_info *ci = get_connection_info(1, options.use_dns);
 
-	parse_server_match_config(&options, user,
-	    get_canonical_hostname(options.use_dns), get_remote_ipaddr());
+	ci->user = user;
+	parse_server_match_config(&options, ci);
 
 #if defined(_AIX) && defined(HAVE_SETAUTHDB)
 	aix_setauthdb(user);

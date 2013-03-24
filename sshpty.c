@@ -72,14 +72,9 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 		error("openpty: %.100s", strerror(errno));
 		return 0;
 	}
-#ifdef ANDROID
-	/* Android does not have a working ttyname() */
-	name = "/dev/ptmx";
-#else
 	name = ttyname(*ttyfd);
 	if (!name)
 		fatal("openpty returns device for which ttyname fails.");
-#endif
 
 	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
 	return 1;
