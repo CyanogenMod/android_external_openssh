@@ -1068,7 +1068,7 @@ sink(int argc, char **argv)
 			continue;
 		}
 		omode = mode;
-		mode |= S_IWUSR;
+		mode |= S_IWRITE;
 		if ((ofd = open(np, O_WRONLY|O_CREAT, mode)) < 0) {
 bad:			run_err("%s: %s", np, strerror(errno));
 			continue;

@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor.c,v 1.116 2012/01/05 00:16:56 djm Exp $ */
+/* $OpenBSD: monitor.c,v 1.117 2012/06/22 12:30:26 dtucker Exp $ */
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
  * Copyright 2002 Markus Friedl <markus@openbsd.org>
@@ -479,9 +479,6 @@ monitor_child_postauth(struct monitor *pmonitor)
 
 	for (;;)
 		monitor_read(pmonitor, mon_dispatch, NULL);
-
-	close(pmonitor->m_sendfd);
-	pmonitor->m_sendfd = -1;
 }
 
 void
@@ -762,9 +759,7 @@ mm_answer_pwnamallow(int sock, Buffer *m)
 	buffer_put_string(m, pwent, sizeof(struct passwd));
 	buffer_put_cstring(m, pwent->pw_name);
 	buffer_put_cstring(m, "*");
-#ifdef HAVE_PW_GECOS_IN_PASSWD
 	buffer_put_cstring(m, pwent->pw_gecos);
-#endif
 #ifdef HAVE_PW_CLASS_IN_PASSWD
 	buffer_put_cstring(m, pwent->pw_class);
 #endif
@@ -849,13 +844,8 @@ mm_answer_authpassword(int sock, Buffer *m)
 
 	passwd = buffer_get_string(m, &plen);
 	/* Only authenticate if the context is valid */
-#ifndef ANDROID
-	/* no password authentication in android */
 	authenticated = options.password_authentication &&
 	    auth_password(authctxt, passwd);
-#else
-	authenticated = 0;
-#endif
 	memset(passwd, 0, strlen(passwd));
 	xfree(passwd);
 

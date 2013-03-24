@@ -43,7 +43,7 @@
 #endif
 #include <string.h>
 
-#include "vis.h"
+#include <vis.h>
 
 #define SPT_NONE	0	/* don't use it at all */
 #define SPT_PSTAT	1	/* use pstat(PSTAT_SETCMD, ...) */

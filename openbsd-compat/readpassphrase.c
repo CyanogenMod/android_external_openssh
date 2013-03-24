@@ -30,11 +30,10 @@
 #include <signal.h>
 #include <ctype.h>
 #include <fcntl.h>
+#include <readpassphrase.h>
 #include <errno.h>
 #include <string.h>
 #include <unistd.h>
-
-#include "readpassphrase.h"
 
 #ifdef TCSASOFT
 # define _T_FLUSH	(TCSAFLUSH|TCSASOFT)
