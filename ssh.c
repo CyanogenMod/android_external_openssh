@@ -886,8 +886,9 @@ main(int ac, char **av)
 	 * directory if it doesn't already exist.
 	 */
 	if (config == NULL) {
-		r = snprintf(buf, sizeof buf, "%s%s%s", pw->pw_dir,
-		    strcmp(pw->pw_dir, "/") ? "/" : "", _PATH_SSH_USER_DIR);
+		r = snprintf(buf, sizeof buf, "%s/%s",
+			strcmp(pw->pw_dir, "/") ? pw->pw_dir : _PATH_ROOT_HOME_PREFIX,
+			_PATH_SSH_USER_DIR);
 		if (r > 0 && (size_t)r < sizeof(buf) && stat(buf, &st) < 0) {
 #ifdef WITH_SELINUX
 			ssh_selinux_setfscreatecon(buf);
