@@ -1567,10 +1567,12 @@ main(int ac, char **av)
 			fatal("Privilege separation user %s does not exist",
 			    SSH_PRIVSEP_USER);
 	} else {
-		memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
-		privsep_pw = pwcopy(privsep_pw);
-		xfree(privsep_pw->pw_passwd);
-		privsep_pw->pw_passwd = xstrdup("*");
+		if (privsep_pw->pw_passwd != NULL) {
+			memset(privsep_pw->pw_passwd, 0, strlen(privsep_pw->pw_passwd));
+			privsep_pw = pwcopy(privsep_pw);
+			xfree(privsep_pw->pw_passwd);
+			privsep_pw->pw_passwd = xstrdup("*");
+		}
 	}
 	endpwent();
 
