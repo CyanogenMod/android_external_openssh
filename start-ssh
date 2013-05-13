@@ -8,7 +8,7 @@ DSA_KEY=/data/ssh/ssh_host_dsa_key
 DSA_PUB_KEY=/data/ssh/ssh_host_dsa_key.pub
 RSA_KEY=/data/ssh/ssh_host_rsa_key
 RSA_PUB_KEY=/data/ssh/ssh_host_rsa_key.pub
-AUTHORIZED_KEYS=/data/ssh/authorized_keys
+AUTHORIZED_KEYS=/data/.ssh/authorized_keys
 DEFAULT_AUTHORIZED_KEYS=/system/etc/security/authorized_keys.default
 
 if [ ! -f $DSA_KEY ]; then
