@@ -8,7 +8,8 @@ DSA_KEY=/data/ssh/ssh_host_dsa_key
 DSA_PUB_KEY=/data/ssh/ssh_host_dsa_key.pub
 RSA_KEY=/data/ssh/ssh_host_rsa_key
 RSA_PUB_KEY=/data/ssh/ssh_host_rsa_key.pub
-AUTHORIZED_KEYS=/data/ssh/authorized_keys
+AUTHORIZED_KEYS=/data/.ssh/authorized_keys
+OLD_AUTHORIZED_KEYS=/data/ssh/authorized_keys
 DEFAULT_AUTHORIZED_KEYS=/system/etc/security/authorized_keys.default
 
 if [ ! -f $DSA_KEY ]; then
@@ -21,6 +22,10 @@ if [ ! -f $RSA_KEY ]; then
     /system/bin/ssh-keygen -t rsa -f $RSA_KEY -N ""
     chmod 600 /$RSA_KEY
     chmod 644 $RSA_PUB_KEY
+fi
+
+if [[ -f $OLD_AUTHORIZED_KEYS && ! -f $AUTHORIZED_KEYS ]]; then
+    cat $OLD_AUTHORIZED_KEYS > $AUTHORIZED_KEYS
 fi
 
 if [[ ! -f $AUTHORIZED_KEYS && -f $DEFAULT_AUTHORIZED_KEYS ]]; then
