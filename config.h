@@ -668,6 +668,9 @@
 /* Some systems put nanosleep outside of libc */
 #define HAVE_NANOSLEEP 1
 
+/* Define to 1 if you have the `usleep' function. */
+#define HAVE_USLEEP 1
+
 /* Define to 1 if you have the <ndir.h> header file. */
 /* #undef HAVE_NDIR_H */
 
