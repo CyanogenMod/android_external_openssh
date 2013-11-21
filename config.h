@@ -257,6 +257,10 @@
    don't. */
 #define HAVE_DECL_GLOB_NOMATCH 1
 
+/* Define to 1 if you have the declaration of `howmany', and to 0 if you
+   don't. */
+#define HAVE_DECL_HOWMANY 0
+
 /* Define to 1 if you have the declaration of `h_errno', and to 0 if you
    don't. */
 #define HAVE_DECL_H_ERRNO 1
@@ -326,6 +330,9 @@
 
 /* Define to 1 if you have the `DSA_generate_parameters_ex' function. */
 #define HAVE_DSA_GENERATE_PARAMETERS_EX 1
+
+/* Define to 1 if you have the `endgrent' function. */
+#define HAVE_ENDGRENT 1
 
 /* Define to 1 if you have the <endian.h> header file. */
 #ifndef HAVE_ENDIAN_H
@@ -617,6 +624,9 @@
 /* Define to 1 if you have the <linux/seccomp.h> header file. */
 /* #undef HAVE_LINUX_SECCOMP_H */
 
+/* Define to 1 if you have the <locale.h> header file. */
+#define HAVE_LOCALE_H 1
+
 /* Define to 1 if you have the `login' function. */
 /* #define HAVE_LOGIN 1 */
 
@@ -643,6 +653,9 @@
 
 /* Define to 1 if you have the <maillock.h> header file. */
 /* #undef HAVE_MAILLOCK_H */
+
+/* Define to 1 if you have the `mblen' function. */
+#define HAVE_MBLEN 1
 
 /* Define to 1 if you have the `md5_crypt' function. */
 /* #undef HAVE_MD5_CRYPT */
@@ -1303,9 +1316,6 @@
 
 /* Define on *nto-qnx systems */
 #define MISSING_FD_MASK 1
-
-/* Define on *nto-qnx systems */
-#define MISSING_HOWMANY 1
 
 /* Define on *nto-qnx systems */
 /* #undef MISSING_NFDBITS */

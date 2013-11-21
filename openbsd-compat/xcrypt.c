@@ -57,6 +57,11 @@
 #  include "md5crypt.h"
 # endif 
 
+# if !defined(HAVE_CRYPT) && defined(HAVE_DES_CRYPT)
+#  include <openssl/des.h>
+#  define crypt DES_crypt
+# endif
+
 char *
 xcrypt(const char *password, const char *salt)
 {
