@@ -84,13 +84,19 @@
 #else
 # define SHA2_HMAC_MODES
 #endif
+#ifdef HAVE_EVP_RIPEMD
+#define	RIPEMD_MAC_MODES \
+	"hmac-ripemd160," \
+	"hmac-ripemd160@openssh.com,"
+#else
+# define RIPEMD_MAC_MODES
+#endif
 #define	KEX_DEFAULT_MAC \
 	"hmac-md5," \
 	"hmac-sha1," \
 	"umac-64@openssh.com," \
 	SHA2_HMAC_MODES \
-	"hmac-ripemd160," \
-	"hmac-ripemd160@openssh.com," \
+	RIPEMD_MAC_MODES \
 	"hmac-sha1-96," \
 	"hmac-md5-96"
 
