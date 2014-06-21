@@ -65,8 +65,10 @@ struct {
 #endif
 	{ "hmac-md5",			SSH_EVP, EVP_md5, 0, -1, -1 },
 	{ "hmac-md5-96",		SSH_EVP, EVP_md5, 96, -1, -1 },
+#ifdef HAVE_EVP_RIPEMD
 	{ "hmac-ripemd160",		SSH_EVP, EVP_ripemd160, 0, -1, -1 },
 	{ "hmac-ripemd160@openssh.com",	SSH_EVP, EVP_ripemd160, 0, -1, -1 },
+#endif
 	{ "umac-64@openssh.com",	SSH_UMAC, NULL, 0, 128, 64 },
 	{ NULL,				0, NULL, 0, -1, -1 }
 };
