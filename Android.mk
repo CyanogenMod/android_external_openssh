@@ -27,7 +27,8 @@ LOCAL_SRC_FILES := \
     openbsd-compat/port-linux.c openbsd-compat/strmode.c \
     openbsd-compat/bsd-openpty.c \
     openbsd-compat/fmt_scaled.c \
-    openbsd-compat/pwcache.c openbsd-compat/glob.c
+    openbsd-compat/pwcache.c openbsd-compat/glob.c \
+    openbsd-compat/bsd-arc4random.c \
 
 #    openbsd-compat/getrrsetbyname.c
 #    openbsd-compat/xcrypt.c 
