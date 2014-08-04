@@ -232,7 +232,7 @@ permanently_set_uid(struct passwd *pw)
 		*/
 		gid_t groups[] = { AID_LOG, AID_INPUT, AID_INET, AID_GRAPHICS,
 						   AID_NET_BT, AID_NET_BT_ADMIN, AID_SDCARD_RW,
-						   AID_MOUNT, AID_NET_BW_STATS };
+						   AID_SDCARD_R, AID_MOUNT, AID_NET_BW_STATS };
 		setgroups(sizeof(groups)/sizeof(groups[0]), groups);
 	}
 #endif
