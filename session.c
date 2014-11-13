@@ -1617,7 +1617,7 @@ child_close_fds(void)
 	 * Close any extra file descriptors.  Note that there may still be
 	 * descriptors left by system functions.  They will be closed later.
 	 */
-	endpwent();
+	/* endpwent(); */
 
 	/*
 	 * Close any extra open file descriptors so that we don't have them
