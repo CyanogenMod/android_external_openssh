@@ -48,6 +48,10 @@
 /* Can't do comparisons on readv */
 /* #undef BROKEN_READV_COMPARISON */
 
+/* NetBSD read function is sometimes redirected, breaking atomicio comparisons
+   against it */
+/* #undef BROKEN_READ_COMPARISON */
+
 /* Define if you have a broken realpath. */
 /* #undef BROKEN_REALPATH */
 
@@ -180,6 +184,9 @@
 /* Define to 1 if you have the `arc4random_buf' function. */
 /* #undef HAVE_ARC4RANDOM_BUF */
 
+/* Define to 1 if you have the `arc4random_stir' function. */
+/* #undef HAVE_ARC4RANDOM_STIR */
+
 /* Define to 1 if you have the `arc4random_uniform' function. */
 /* #undef HAVE_ARC4RANDOM_UNIFORM */
 
@@ -210,8 +217,29 @@
 /* Define to 1 if you have the `bcopy' function. */
 #define HAVE_BCOPY 1
 
+/* Define to 1 if you have the `bcrypt_pbkdf' function. */
+/* #undef HAVE_BCRYPT_PBKDF */
+
 /* Define to 1 if you have the `bindresvport_sa' function. */
 /* #undef HAVE_BINDRESVPORT_SA */
+
+/* Define to 1 if you have the `blf_enc' function. */
+/* #undef HAVE_BLF_ENC */
+
+/* Define to 1 if you have the <blf.h> header file. */
+/* #undef HAVE_BLF_H */
+
+/* Define to 1 if you have the `Blowfish_expand0state' function. */
+/* #undef HAVE_BLOWFISH_EXPAND0STATE */
+
+/* Define to 1 if you have the `Blowfish_expandstate' function. */
+/* #undef HAVE_BLOWFISH_EXPANDSTATE */
+
+/* Define to 1 if you have the `Blowfish_initstate' function. */
+/* #undef HAVE_BLOWFISH_INITSTATE */
+
+/* Define to 1 if you have the `Blowfish_stream2word' function. */
+/* #undef HAVE_BLOWFISH_STREAM2WORD */
 
 /* Define to 1 if you have the `BN_is_prime_ex' function. */
 #define HAVE_BN_IS_PRIME_EX 1
@@ -221,6 +249,9 @@
 
 /* Define to 1 if you have the <bstring.h> header file. */
 /* #undef HAVE_BSTRING_H */
+
+/* Define to 1 if you have the `cap_rights_limit' function. */
+/* #undef HAVE_CAP_RIGHTS_LIMIT */
 
 /* Define to 1 if you have the `clock' function. */
 #define HAVE_CLOCK 1
@@ -354,6 +385,9 @@
 /* Define if you have ut_exit in utmp.h */
 #define HAVE_EXIT_IN_UTMP 1
 
+/* Define to 1 if you have the `explicit_bzero' function. */
+#define HAVE_EXPLICIT_BZERO 1
+
 /* Define to 1 if you have the `fchmod' function. */
 #define HAVE_FCHMOD 1
 
@@ -383,6 +417,9 @@
 
 /* Define to 1 if the system has the type `fsfilcnt_t'. */
 #define HAVE_FSFILCNT_T 1
+
+/* Define to 1 if you have the `fstatfs' function. */
+#define HAVE_FSTATFS 1
 
 /* Define to 1 if you have the `fstatvfs' function. */
 /* #define HAVE_FSTATVFS 1 */
@@ -549,6 +586,9 @@
 /* define if you have int64_t data type */
 #define HAVE_INT64_T 1
 
+/* Define to 1 if the system has the type `intmax_t'. */
+#define HAVE_INTMAX_T 1
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
 
@@ -668,6 +708,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #define HAVE_MEMORY_H 1
+
+/* Define to 1 if you have the `memset_s' function. */
+/* #undef HAVE_MEMSET_S */
 
 /* Define to 1 if you have the `mkdtemp' function. */
 #define HAVE_MKDTEMP 1
@@ -1033,6 +1076,9 @@
 /* Define to 1 if you have the <sys/bsdtty.h> header file. */
 /* #undef HAVE_SYS_BSDTTY_H */
 
+/* Define to 1 if you have the <sys/capability.h> header file. */
+#define HAVE_SYS_CAPABILITY_H 1
+
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #define HAVE_SYS_CDEFS_H 1
 
@@ -1146,6 +1192,9 @@
 
 /* Define to 1 if you have the <ucred.h> header file. */
 /* #undef HAVE_UCRED_H */
+
+/* Define to 1 if the system has the type `uintmax_t'. */
+#define HAVE_UINTMAX_T 1
 
 /* define if you have uintxx_t data type */
 #define HAVE_UINTXX_T 1
@@ -1381,6 +1430,9 @@
 /* read(1) can return 0 for a non-closed fd */
 /* #undef PTY_ZEROREAD */
 
+/* Sandbox using capsicum */
+/* #undef SANDBOX_CAPSICUM */
+
 /* Sandbox using Darwin sandbox_init(3) */
 /* #undef SANDBOX_DARWIN */
 
@@ -1392,6 +1444,9 @@
 
 /* Sandbox using seccomp filter */
 /* #undef SANDBOX_SECCOMP_FILTER */
+
+/* define if setrlimit RLIMIT_NOFILE breaks things */
+#undef SANDBOX_SKIP_RLIMIT_NOFILE
 
 /* Sandbox using systrace(4) */
 /* #undef SANDBOX_SYSTRACE */
@@ -1527,8 +1582,14 @@
 /* Define if you want IRIX project management */
 /* #undef WITH_IRIX_PROJECT */
 
+/* use libcrypto for cryptography */
+#define WITH_OPENSSL 1
+
 /* Define if you want SELinux support. */
 /* #undef WITH_SELINUX */
+
+/* include SSH protocol version 1 support */
+#define WITH_SSH1 1
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

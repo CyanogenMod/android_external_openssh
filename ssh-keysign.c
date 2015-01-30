@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-keysign.c,v 1.37 2013/05/17 00:13:14 djm Exp $ */
+/* $OpenBSD: ssh-keysign.c,v 1.42 2014/04/29 18:01:49 markus Exp $ */
 /*
  * Copyright (c) 2002 Markus Friedl.  All rights reserved.
  *
@@ -150,12 +150,12 @@ main(int argc, char **argv)
 {
 	Buffer b;
 	Options options;
-#define NUM_KEYTYPES 3
+#define NUM_KEYTYPES 4
 	Key *keys[NUM_KEYTYPES], *key = NULL;
 	struct passwd *pw;
 	int key_fd[NUM_KEYTYPES], i, found, version = 2, fd;
 	u_char *signature, *data;
-	char *host;
+	char *host, *fp;
 	u_int slen, dlen;
 	u_int32_t rnd[256];
 
@@ -169,6 +169,7 @@ main(int argc, char **argv)
 	i = 0;
 	key_fd[i++] = open(_PATH_HOST_DSA_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_ECDSA_KEY_FILE, O_RDONLY);
+	key_fd[i++] = open(_PATH_HOST_ED25519_KEY_FILE, O_RDONLY);
 	key_fd[i++] = open(_PATH_HOST_RSA_KEY_FILE, O_RDONLY);
 
 	original_real_uid = getuid();	/* XXX readconf.c needs this */
@@ -179,7 +180,6 @@ main(int argc, char **argv)
 	permanently_set_uid(pw);
 
 	seed_rng();
-	arc4random_stir();
 
 #ifdef DEBUG_SSH_KEYSIGN
 	log_init("ssh-keysign", SYSLOG_LEVEL_DEBUG3, SYSLOG_FACILITY_AUTH, 0);
@@ -187,7 +187,7 @@ main(int argc, char **argv)
 
 	/* verify that ssh-keysign is enabled by the admin */
 	initialize_options(&options);
-	(void)read_config_file(_PATH_HOST_CONFIG_FILE, "", &options, 0);
+	(void)read_config_file(_PATH_HOST_CONFIG_FILE, pw, "", &options, 0);
 	fill_default_options(&options);
 	if (options.enable_ssh_keysign != 1)
 		fatal("ssh-keysign not enabled in %s",
@@ -201,8 +201,7 @@ main(int argc, char **argv)
 		fatal("could not open any host key");
 
 	OpenSSL_add_all_algorithms();
-	for (i = 0; i < 256; i++)
-		rnd[i] = arc4random();
+	arc4random_buf(rnd, sizeof(rnd));
 	RAND_seed(rnd, sizeof(rnd));
 
 	found = 0;
@@ -210,8 +209,11 @@ main(int argc, char **argv)
 		keys[i] = NULL;
 		if (key_fd[i] == -1)
 			continue;
+#ifdef WITH_OPENSSL
+/* XXX wrong api */
 		keys[i] = key_load_private_pem(key_fd[i], KEY_UNSPEC,
 		    NULL, NULL);
+#endif
 		close(key_fd[i]);
 		if (keys[i] != NULL)
 			found = 1;
@@ -243,8 +245,11 @@ main(int argc, char **argv)
 			break;
 		}
 	}
-	if (!found)
-		fatal("no matching hostkey found");
+	if (!found) {
+		fp = key_fingerprint(key, SSH_FP_MD5, SSH_FP_HEX);
+		fatal("no matching hostkey found for key %s %s",
+		    key_type(key), fp);
+	}
 
 	if (key_sign(keys[i], &signature, &slen, data, dlen) != 0)
 		fatal("key_sign failed");
