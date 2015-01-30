@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.35 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: uidswap.c,v 1.36 2013/11/08 11:15:19 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -20,6 +20,7 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <grp.h>
 
@@ -139,7 +140,9 @@ temporarily_use_uid(struct passwd *pw)
 void
 permanently_drop_suid(uid_t uid)
 {
+#ifndef HAVE_CYGWIN
 	uid_t old_uid = getuid();
+#endif
 
 	debug("permanently_drop_suid: %u", (u_int)uid);
 	if (setresuid(uid, uid, uid) < 0)
@@ -202,8 +205,10 @@ restore_uid(void)
 void
 permanently_set_uid(struct passwd *pw)
 {
+#ifndef HAVE_CYGWIN
 	uid_t old_uid = getuid();
 	gid_t old_gid = getgid();
+#endif
 #ifdef ANDROID
 	struct __user_cap_header_struct header;
 	struct __user_cap_data_struct cap;

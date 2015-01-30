@@ -160,8 +160,8 @@ case $os in
 		os=
 		basic_machine=$1
 		;;
-        -bluegene*)
-	        os=-cnk
+	-bluegene*)
+		os=-cnk
 		;;
 	-sim | -cisco | -oki | -wec | -winbond)
 		os=
@@ -177,10 +177,10 @@ case $os in
 		os=-chorusos
 		basic_machine=$1
 		;;
- 	-chorusrdb)
- 		os=-chorusrdb
+	-chorusrdb)
+		os=-chorusrdb
 		basic_machine=$1
- 		;;
+		;;
 	-hiux*)
 		os=-hiuxwe2
 		;;
@@ -461,7 +461,7 @@ case $basic_machine in
 		basic_machine=a29k-amd
 		os=-udi
 		;;
-    	abacus)
+	abacus)
 		basic_machine=abacus-unknown
 		;;
 	adobe68k)
@@ -544,7 +544,7 @@ case $basic_machine in
 		basic_machine=c90-cray
 		os=-unicos
 		;;
-        cegcc)
+	cegcc)
 		basic_machine=arm-unknown
 		os=-cegcc
 		;;
@@ -910,10 +910,10 @@ case $basic_machine in
 	np1)
 		basic_machine=np1-gould
 		;;
-        neo-tandem)
+	neo-tandem)
 		basic_machine=neo-tandem
 		;;
-        nse-tandem)
+	nse-tandem)
 		basic_machine=nse-tandem
 		;;
 	nsr-tandem)
@@ -1329,11 +1329,11 @@ esac
 if [ x"$os" != x"" ]
 then
 case $os in
-        # First match some system type aliases
-        # that might get confused with valid system types.
+	# First match some system type aliases
+	# that might get confused with valid system types.
 	# -solaris* is a basic system type, with this one exception.
-        -auroraux)
-	        os=-auroraux
+	-auroraux)
+		os=-auroraux
 		;;
 	-solaris1 | -solaris1.*)
 		os=`echo $os | sed -e 's|solaris1|sunos4|'`
@@ -1418,7 +1418,7 @@ case $os in
 	-opened*)
 		os=-openedition
 		;;
-        -os400*)
+	-os400*)
 		os=-os400
 		;;
 	-wince*)
@@ -1467,7 +1467,7 @@ case $os in
 	-sinix*)
 		os=-sysv4
 		;;
-        -tpf*)
+	-tpf*)
 		os=-tpf
 		;;
 	-triton*)
@@ -1512,8 +1512,8 @@ case $os in
 	-dicos*)
 		os=-dicos
 		;;
-        -nacl*)
-	        ;;
+	-nacl*)
+		;;
 	-none)
 		;;
 	*)
@@ -1536,10 +1536,10 @@ else
 # system, and we'll never get to this point.
 
 case $basic_machine in
-        score-*)
+	score-*)
 		os=-elf
 		;;
-        spu-*)
+	spu-*)
 		os=-elf
 		;;
 	*-acorn)
@@ -1551,8 +1551,8 @@ case $basic_machine in
 	arm*-semi)
 		os=-aout
 		;;
-        c4x-* | tic4x-*)
-        	os=-coff
+	c4x-* | tic4x-*)
+		os=-coff
 		;;
 	hexagon-*)
 		os=-elf
@@ -1588,7 +1588,7 @@ case $basic_machine in
 	m68*-cisco)
 		os=-aout
 		;;
-        mep-*)
+	mep-*)
 		os=-elf
 		;;
 	mips*-cisco)
@@ -1615,7 +1615,7 @@ case $basic_machine in
 	*-ibm)
 		os=-aix
 		;;
-    	*-knuth)
+	*-knuth)
 		os=-mmixware
 		;;
 	*-wec)

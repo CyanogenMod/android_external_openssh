@@ -1,0 +1,84 @@
+--- config.h
++++ config.h
+@@ -78,7 +82,7 @@
+ /* Define if your snprintf is busted */
+ #undef BROKEN_SNPRINTF
+ 
+-/* FreeBSD strnvis does not do what we need */
++/* FreeBSD strnvis argument order is swapped compared to OpenBSD */
+ #undef BROKEN_STRNVIS
+ 
+ /* tcgetattr with ICANON may hang */
+@@ -384,12 +415,33 @@
+ /* Define if libcrypto has EVP_CIPHER_CTX_ctrl */
+ #undef HAVE_EVP_CIPHER_CTX_CTRL
+ 
++/* Define to 1 if you have the `EVP_DigestFinal_ex' function. */
++#undef HAVE_EVP_DIGESTFINAL_EX
++
++/* Define to 1 if you have the `EVP_DigestInit_ex' function. */
++#undef HAVE_EVP_DIGESTINIT_EX
++
++/* Define to 1 if you have the `EVP_MD_CTX_cleanup' function. */
++#undef HAVE_EVP_MD_CTX_CLEANUP
++
++/* Define to 1 if you have the `EVP_MD_CTX_copy_ex' function. */
++#undef HAVE_EVP_MD_CTX_COPY_EX
++
++/* Define to 1 if you have the `EVP_MD_CTX_init' function. */
++#undef HAVE_EVP_MD_CTX_INIT
++
++/* Define to 1 if you have the `EVP_ripemd160' function. */
++#undef HAVE_EVP_RIPEMD160
++
+ /* Define to 1 if you have the `EVP_sha256' function. */
+ #undef HAVE_EVP_SHA256
+ 
+ /* Define if you have ut_exit in utmp.h */
+ #undef HAVE_EXIT_IN_UTMP
+ 
++/* Define to 1 if you have the `explicit_bzero' function. */
++#undef HAVE_EXPLICIT_BZERO
++
+ /* Define to 1 if you have the `fchmod' function. */
+ #undef HAVE_FCHMOD
+ 
+@@ -1288,9 +1355,6 @@
+ /* Define if va_copy exists */
+ #undef HAVE_VA_COPY
+ 
+-/* Define to 1 if you have the `vhangup' function. */
+-#undef HAVE_VHANGUP
+-
+ /* Define to 1 if you have the <vis.h> header file. */
+ #undef HAVE_VIS_H
+ 
+@@ -1351,9 +1415,6 @@
+ /* Define if pututxline updates lastlog too */
+ #undef LASTLOG_WRITE_PUTUTXLINE
+ 
+-/* Define if you want TCP Wrappers support */
+-#undef LIBWRAP
+-
+ /* Define to whatever link() returns for "not supported" if it doesn't return
+    EOPNOTSUPP. */
+ #undef LINK_OPNOTSUPP_ERRNO
+@@ -1410,9 +1471,18 @@
+ /* Define if EVP_DigestUpdate returns void */
+ #undef OPENSSL_EVP_DIGESTUPDATE_VOID
+ 
+-/* libcrypto includes complete ECC support */
++/* OpenSSL has ECC */
+ #undef OPENSSL_HAS_ECC
+ 
++/* libcrypto has NID_X9_62_prime256v1 */
++#undef OPENSSL_HAS_NISTP256
++
++/* libcrypto has NID_secp384r1 */
++#undef OPENSSL_HAS_NISTP384
++
++/* libcrypto has NID_secp521r1 */
++#undef OPENSSL_HAS_NISTP521
++
+ /* libcrypto has EVP AES CTR */
+ #undef OPENSSL_HAVE_EVPCTR

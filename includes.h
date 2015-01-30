@@ -176,4 +176,8 @@
 
 #include "entropy.h"
 
+#ifdef ANDROID
+#include <openbsd-compat.h>
+#endif
+
 #endif /* INCLUDES_H */

@@ -1,4 +1,4 @@
-#	$OpenBSD: krl.sh,v 1.1 2013/01/18 00:45:29 djm Exp $
+#	$OpenBSD: krl.sh,v 1.3 2014/06/24 01:04:43 djm Exp $
 #	Placed in the Public Domain.
 
 tid="key revocation lists"
@@ -37,6 +37,9 @@ serial: 700-797
 serial: 798
 serial: 799
 serial: 599-701
+# Some multiple consecutive serial number ranges
+serial: 10000-20000
+serial: 30000-40000
 EOF
 
 # A specification that revokes some certificated by key ID.
@@ -100,6 +103,9 @@ $SSHKEYGEN $OPTS -kf $OBJ/krl-serial -s $OBJ/revoked-ca $OBJ/revoked-serials \
 $SSHKEYGEN $OPTS -kf $OBJ/krl-keyid -s $OBJ/revoked-ca.pub $OBJ/revoked-keyid \
 	>/dev/null || fatal "$SSHKEYGEN KRL failed"
 }
+
+## XXX dump with trace and grep for set cert serials
+## XXX test ranges near (u64)-1, etc.
 
 verbose "$tid: generating KRLs"
 genkrls
