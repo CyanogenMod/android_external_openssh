@@ -47,6 +47,10 @@
 /* Can't do comparisons on readv */
 #undef BROKEN_READV_COMPARISON
 
+/* NetBSD read function is sometimes redirected, breaking atomicio comparisons
+   against it */
+#undef BROKEN_READ_COMPARISON
+
 /* Define if you have a broken realpath. */
 #undef BROKEN_REALPATH
 
@@ -74,7 +78,7 @@
 /* Define if your snprintf is busted */
 #undef BROKEN_SNPRINTF
 
-/* FreeBSD strnvis does not do what we need */
+/* FreeBSD strnvis argument order is swapped compared to OpenBSD */
 #undef BROKEN_STRNVIS
 
 /* tcgetattr with ICANON may hang */
@@ -182,6 +186,9 @@
 /* Define to 1 if you have the `arc4random_buf' function. */
 #undef HAVE_ARC4RANDOM_BUF
 
+/* Define to 1 if you have the `arc4random_stir' function. */
+#undef HAVE_ARC4RANDOM_STIR
+
 /* Define to 1 if you have the `arc4random_uniform' function. */
 #undef HAVE_ARC4RANDOM_UNIFORM
 
@@ -212,8 +219,29 @@
 /* Define to 1 if you have the `bcopy' function. */
 #undef HAVE_BCOPY
 
+/* Define to 1 if you have the `bcrypt_pbkdf' function. */
+#undef HAVE_BCRYPT_PBKDF
+
 /* Define to 1 if you have the `bindresvport_sa' function. */
 #undef HAVE_BINDRESVPORT_SA
+
+/* Define to 1 if you have the `blf_enc' function. */
+#undef HAVE_BLF_ENC
+
+/* Define to 1 if you have the <blf.h> header file. */
+#undef HAVE_BLF_H
+
+/* Define to 1 if you have the `Blowfish_expand0state' function. */
+#undef HAVE_BLOWFISH_EXPAND0STATE
+
+/* Define to 1 if you have the `Blowfish_expandstate' function. */
+#undef HAVE_BLOWFISH_EXPANDSTATE
+
+/* Define to 1 if you have the `Blowfish_initstate' function. */
+#undef HAVE_BLOWFISH_INITSTATE
+
+/* Define to 1 if you have the `Blowfish_stream2word' function. */
+#undef HAVE_BLOWFISH_STREAM2WORD
 
 /* Define to 1 if you have the `BN_is_prime_ex' function. */
 #undef HAVE_BN_IS_PRIME_EX
@@ -226,6 +254,9 @@
 
 /* Define to 1 if you have the <bstring.h> header file. */
 #undef HAVE_BSTRING_H
+
+/* Define to 1 if you have the `cap_rights_limit' function. */
+#undef HAVE_CAP_RIGHTS_LIMIT
 
 /* Define to 1 if you have the `clock' function. */
 #undef HAVE_CLOCK
@@ -374,11 +405,32 @@
 /* Define if libcrypto has EVP_CIPHER_CTX_ctrl */
 #undef HAVE_EVP_CIPHER_CTX_CTRL
 
+/* Define to 1 if you have the `EVP_DigestFinal_ex' function. */
+#undef HAVE_EVP_DIGESTFINAL_EX
+
+/* Define to 1 if you have the `EVP_DigestInit_ex' function. */
+#undef HAVE_EVP_DIGESTINIT_EX
+
+/* Define to 1 if you have the `EVP_MD_CTX_cleanup' function. */
+#undef HAVE_EVP_MD_CTX_CLEANUP
+
+/* Define to 1 if you have the `EVP_MD_CTX_copy_ex' function. */
+#undef HAVE_EVP_MD_CTX_COPY_EX
+
+/* Define to 1 if you have the `EVP_MD_CTX_init' function. */
+#undef HAVE_EVP_MD_CTX_INIT
+
+/* Define to 1 if you have the `EVP_ripemd160' function. */
+#undef HAVE_EVP_RIPEMD160
+
 /* Define to 1 if you have the `EVP_sha256' function. */
 #undef HAVE_EVP_SHA256
 
 /* Define if you have ut_exit in utmp.h */
 #undef HAVE_EXIT_IN_UTMP
+
+/* Define to 1 if you have the `explicit_bzero' function. */
+#undef HAVE_EXPLICIT_BZERO
 
 /* Define to 1 if you have the `fchmod' function. */
 #undef HAVE_FCHMOD
@@ -412,6 +464,9 @@
 
 /* Define to 1 if the system has the type `fsfilcnt_t'. */
 #undef HAVE_FSFILCNT_T
+
+/* Define to 1 if you have the `fstatfs' function. */
+#undef HAVE_FSTATFS
 
 /* Define to 1 if you have the `fstatvfs' function. */
 #undef HAVE_FSTATVFS
@@ -584,6 +639,9 @@
 /* define if you have int64_t data type */
 #undef HAVE_INT64_T
 
+/* Define to 1 if the system has the type `intmax_t'. */
+#undef HAVE_INTMAX_T
+
 /* Define to 1 if you have the <inttypes.h> header file. */
 #undef HAVE_INTTYPES_H
 
@@ -712,6 +770,9 @@
 
 /* Define to 1 if you have the <memory.h> header file. */
 #undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the `memset_s' function. */
+#undef HAVE_MEMSET_S
 
 /* Define to 1 if you have the `mkdtemp' function. */
 #undef HAVE_MKDTEMP
@@ -1083,6 +1144,9 @@
 /* Define to 1 if you have the <sys/bsdtty.h> header file. */
 #undef HAVE_SYS_BSDTTY_H
 
+/* Define to 1 if you have the <sys/capability.h> header file. */
+#undef HAVE_SYS_CAPABILITY_H
+
 /* Define to 1 if you have the <sys/cdefs.h> header file. */
 #undef HAVE_SYS_CDEFS_H
 
@@ -1197,6 +1261,9 @@
 /* Define to 1 if you have the <ucred.h> header file. */
 #undef HAVE_UCRED_H
 
+/* Define to 1 if the system has the type `uintmax_t'. */
+#undef HAVE_UINTMAX_T
+
 /* define if you have uintxx_t data type */
 #undef HAVE_UINTXX_T
 
@@ -1263,9 +1330,6 @@
 /* Define if va_copy exists */
 #undef HAVE_VA_COPY
 
-/* Define to 1 if you have the `vhangup' function. */
-#undef HAVE_VHANGUP
-
 /* Define to 1 if you have the <vis.h> header file. */
 #undef HAVE_VIS_H
 
@@ -1326,9 +1390,6 @@
 /* Define if pututxline updates lastlog too */
 #undef LASTLOG_WRITE_PUTUTXLINE
 
-/* Define if you want TCP Wrappers support */
-#undef LIBWRAP
-
 /* Define to whatever link() returns for "not supported" if it doesn't return
    EOPNOTSUPP. */
 #undef LINK_OPNOTSUPP_ERRNO
@@ -1385,8 +1446,17 @@
 /* Define if EVP_DigestUpdate returns void */
 #undef OPENSSL_EVP_DIGESTUPDATE_VOID
 
-/* libcrypto includes complete ECC support */
+/* OpenSSL has ECC */
 #undef OPENSSL_HAS_ECC
+
+/* libcrypto has NID_X9_62_prime256v1 */
+#undef OPENSSL_HAS_NISTP256
+
+/* libcrypto has NID_secp384r1 */
+#undef OPENSSL_HAS_NISTP384
+
+/* libcrypto has NID_secp521r1 */
+#undef OPENSSL_HAS_NISTP521
 
 /* libcrypto has EVP AES CTR */
 #undef OPENSSL_HAVE_EVPCTR
@@ -1440,6 +1510,9 @@
 /* read(1) can return 0 for a non-closed fd */
 #undef PTY_ZEROREAD
 
+/* Sandbox using capsicum */
+#undef SANDBOX_CAPSICUM
+
 /* Sandbox using Darwin sandbox_init(3) */
 #undef SANDBOX_DARWIN
 
@@ -1454,6 +1527,9 @@
 
 /* setrlimit RLIMIT_FSIZE works */
 #undef SANDBOX_SKIP_RLIMIT_FSIZE
+
+/* define if setrlimit RLIMIT_NOFILE breaks things */
+#undef SANDBOX_SKIP_RLIMIT_NOFILE
 
 /* Sandbox using systrace(4) */
 #undef SANDBOX_SYSTRACE
@@ -1586,8 +1662,14 @@
 /* Define if you want IRIX project management */
 #undef WITH_IRIX_PROJECT
 
+/* use libcrypto for cryptography */
+#undef WITH_OPENSSL
+
 /* Define if you want SELinux support. */
 #undef WITH_SELINUX
+
+/* include SSH protocol version 1 support */
+#undef WITH_SSH1
 
 /* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
    significant byte first (like Motorola and SPARC, unlike Intel). */

@@ -104,9 +104,6 @@ void
 pty_make_controlling_tty(int *ttyfd, const char *tty)
 {
 	int fd;
-#ifdef USE_VHANGUP
-	void *old;
-#endif /* USE_VHANGUP */
 
 #ifdef _UNICOS
 	if (setsid() < 0)
@@ -162,21 +159,11 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 	if (setpgrp(0,0) < 0)
 		error("SETPGRP %s",strerror(errno));
 #endif /* NEED_SETPGRP */
-#ifdef USE_VHANGUP
-	old = signal(SIGHUP, SIG_IGN);
-	vhangup();
-	signal(SIGHUP, old);
-#endif /* USE_VHANGUP */
 	fd = open(tty, O_RDWR);
 	if (fd < 0) {
 		error("%.100s: %.100s", tty, strerror(errno));
 	} else {
-#ifdef USE_VHANGUP
-		close(*ttyfd);
-		*ttyfd = fd;
-#else /* USE_VHANGUP */
 		close(fd);
-#endif /* USE_VHANGUP */
 	}
 	/* Verify that we now have a controlling tty. */
 	fd = open(_PATH_TTY, O_WRONLY);
