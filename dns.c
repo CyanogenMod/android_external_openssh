@@ -1,4 +1,4 @@
-/* $OpenBSD: dns.c,v 1.29 2013/05/17 00:13:13 djm Exp $ */
+/* $OpenBSD: dns.c,v 1.31 2014/06/24 01:13:21 djm Exp $ */
 
 /*
  * Copyright (c) 2003 Wesley Griffin. All rights reserved.
@@ -34,6 +34,8 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdarg.h>
+#include <stdlib.h>
 
 #include "xmalloc.h"
 #include "key.h"
@@ -93,6 +95,11 @@ dns_read_key(u_int8_t *algorithm, u_int8_t *digest_type,
 		break;
 	case KEY_ECDSA:
 		*algorithm = SSHFP_KEY_ECDSA;
+		if (!*digest_type)
+			*digest_type = SSHFP_HASH_SHA256;
+		break;
+	case KEY_ED25519:
+		*algorithm = SSHFP_KEY_ED25519;
 		if (!*digest_type)
 			*digest_type = SSHFP_HASH_SHA256;
 		break;
@@ -219,13 +226,8 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 		return -1;
 	}
 
-#ifndef ANDROID
 	result = getrrsetbyname(hostname, DNS_RDATACLASS_IN,
 	    DNS_RDATATYPE_SSHFP, 0, &fingerprints);
-#else
-	/* unsupported in android */
-	result = -1;
-#endif
 	if (result) {
 		verbose("DNS lookup error: %s", dns_result_totext(result));
 		return -1;
@@ -244,9 +246,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	if (!dns_read_key(&hostkey_algorithm, &hostkey_digest_type,
 	    &hostkey_digest, &hostkey_digest_len, hostkey)) {
 		error("Error calculating host key fingerprint.");
-#ifndef ANDROID
 		freerrset(fingerprints);
-#endif
 		return -1;
 	}
 
@@ -275,9 +275,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 			    &hostkey_digest_type, &hostkey_digest,
 			    &hostkey_digest_len, hostkey)) {
 				error("Error calculating key fingerprint.");
-#ifndef ANDROID
 				freerrset(fingerprints);
-#endif
 				return -1;
 			}
 		}
@@ -294,9 +292,7 @@ verify_host_key_dns(const char *hostname, struct sockaddr *address,
 	}
 
 	free(hostkey_digest); /* from key_fingerprint_raw() */
-#ifndef ANDROID
 	freerrset(fingerprints);
-#endif
 
 	if (*flags & DNS_VERIFY_FOUND)
 		if (*flags & DNS_VERIFY_MATCH)

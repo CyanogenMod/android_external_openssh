@@ -1,4 +1,4 @@
-/* $OpenBSD: ssh-agent.c,v 1.177 2013/07/20 01:50:20 djm Exp $ */
+/* $OpenBSD: ssh-agent.c,v 1.190 2014/07/25 21:22:03 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -49,9 +49,10 @@
 #endif
 #include "openbsd-compat/sys-queue.h"
 
+#ifdef WITH_OPENSSL
 #include <openssl/evp.h>
-#include <openssl/md5.h>
 #include "openbsd-compat/openssl-compat.h"
+#endif
 
 #include <errno.h>
 #include <fcntl.h>
@@ -75,6 +76,7 @@
 #include "compat.h"
 #include "log.h"
 #include "misc.h"
+#include "digest.h"
 
 #ifdef ENABLE_PKCS11
 #include "ssh-pkcs11.h"
@@ -123,6 +125,9 @@ int max_fd = 0;
 /* pid of shell == parent of agent */
 pid_t parent_pid = -1;
 time_t parent_alive_interval = 0;
+
+/* pid of process for which cleanup_socket is applicable */
+pid_t cleanup_pid = 0;
 
 /* pathname and directory for AUTH_SOCKET */
 char socket_name[MAXPATHLEN];
@@ -221,9 +226,11 @@ process_request_identities(SocketEntry *e, int version)
 	buffer_put_int(&msg, tab->nentries);
 	TAILQ_FOREACH(id, &tab->idlist, next) {
 		if (id->key->type == KEY_RSA1) {
+#ifdef WITH_SSH1
 			buffer_put_int(&msg, BN_num_bits(id->key->rsa->n));
 			buffer_put_bignum(&msg, id->key->rsa->e);
 			buffer_put_bignum(&msg, id->key->rsa->n);
+#endif
 		} else {
 			u_char *blob;
 			u_int blen;
@@ -238,6 +245,7 @@ process_request_identities(SocketEntry *e, int version)
 	buffer_free(&msg);
 }
 
+#ifdef WITH_SSH1
 /* ssh1 only */
 static void
 process_authentication_challenge1(SocketEntry *e)
@@ -248,7 +256,7 @@ process_authentication_challenge1(SocketEntry *e)
 	Identity *id;
 	int i, len;
 	Buffer msg;
-	MD5_CTX md;
+	struct ssh_digest_ctx *md;
 	Key *key;
 
 	buffer_init(&msg);
@@ -273,7 +281,7 @@ process_authentication_challenge1(SocketEntry *e)
 	if (id != NULL && (!id->confirm || confirm_key(id) == 0)) {
 		Key *private = id->key;
 		/* Decrypt the challenge using the private key. */
-		if (rsa_private_decrypt(challenge, challenge, private->rsa) <= 0)
+		if (rsa_private_decrypt(challenge, challenge, private->rsa) != 0)
 			goto failure;
 
 		/* The response is MD5 of decrypted challenge plus session id. */
@@ -284,10 +292,12 @@ process_authentication_challenge1(SocketEntry *e)
 		}
 		memset(buf, 0, 32);
 		BN_bn2bin(challenge, buf + 32 - len);
-		MD5_Init(&md);
-		MD5_Update(&md, buf, 32);
-		MD5_Update(&md, session_id, 16);
-		MD5_Final(mdbuf, &md);
+		if ((md = ssh_digest_start(SSH_DIGEST_MD5)) == NULL ||
+		    ssh_digest_update(md, buf, 32) < 0 ||
+		    ssh_digest_update(md, session_id, 16) < 0 ||
+		    ssh_digest_final(md, mdbuf, sizeof(mdbuf)) < 0)
+			fatal("%s: md5 failed", __func__);
+		ssh_digest_free(md);
 
 		/* Send the response. */
 		buffer_put_char(&msg, SSH_AGENT_RSA_RESPONSE);
@@ -306,6 +316,7 @@ send:
 	BN_clear_free(challenge);
 	buffer_free(&msg);
 }
+#endif
 
 /* ssh2 only */
 static void
@@ -357,12 +368,16 @@ process_sign_request2(SocketEntry *e)
 static void
 process_remove_identity(SocketEntry *e, int version)
 {
-	u_int blen, bits;
+	u_int blen;
 	int success = 0;
 	Key *key = NULL;
 	u_char *blob;
+#ifdef WITH_SSH1
+	u_int bits;
+#endif /* WITH_SSH1 */
 
 	switch (version) {
+#ifdef WITH_SSH1
 	case 1:
 		key = key_new(KEY_RSA1);
 		bits = buffer_get_int(&e->request);
@@ -373,6 +388,7 @@ process_remove_identity(SocketEntry *e, int version)
 			logit("Warning: identity keysize mismatch: actual %u, announced %u",
 			    key_size(key), bits);
 		break;
+#endif /* WITH_SSH1 */
 	case 2:
 		blob = buffer_get_string(&e->request, &blen);
 		key = key_from_blob(blob, blen);
@@ -464,18 +480,12 @@ process_add_identity(SocketEntry *e, int version)
 	Idtab *tab = idtab_lookup(version);
 	Identity *id;
 	int type, success = 0, confirm = 0;
-	char *type_name, *comment;
+	char *comment;
 	time_t death = 0;
 	Key *k = NULL;
-#ifdef OPENSSL_HAS_ECC
-	BIGNUM *exponent;
-	EC_POINT *q;
-	char *curve;
-#endif
-	u_char *cert;
-	u_int len;
 
 	switch (version) {
+#ifdef WITH_SSH1
 	case 1:
 		k = key_new_private(KEY_RSA1);
 		(void) buffer_get_int(&e->request);		/* ignored */
@@ -489,132 +499,30 @@ process_add_identity(SocketEntry *e, int version)
 		buffer_get_bignum(&e->request, k->rsa->p);	/* q */
 
 		/* Generate additional parameters */
-		rsa_generate_additional_parameters(k->rsa);
-		break;
-	case 2:
-		type_name = buffer_get_string(&e->request, NULL);
-		type = key_type_from_name(type_name);
-		switch (type) {
-		case KEY_DSA:
-			k = key_new_private(type);
-			buffer_get_bignum2(&e->request, k->dsa->p);
-			buffer_get_bignum2(&e->request, k->dsa->q);
-			buffer_get_bignum2(&e->request, k->dsa->g);
-			buffer_get_bignum2(&e->request, k->dsa->pub_key);
-			buffer_get_bignum2(&e->request, k->dsa->priv_key);
-			break;
-		case KEY_DSA_CERT_V00:
-		case KEY_DSA_CERT:
-			cert = buffer_get_string(&e->request, &len);
-			if ((k = key_from_blob(cert, len)) == NULL)
-				fatal("Certificate parse failed");
-			free(cert);
-			key_add_private(k);
-			buffer_get_bignum2(&e->request, k->dsa->priv_key);
-			break;
-#ifdef OPENSSL_HAS_ECC
-		case KEY_ECDSA:
-			k = key_new_private(type);
-			k->ecdsa_nid = key_ecdsa_nid_from_name(type_name);
-			curve = buffer_get_string(&e->request, NULL);
-			if (k->ecdsa_nid != key_curve_name_to_nid(curve))
-				fatal("%s: curve names mismatch", __func__);
-			free(curve);
-			k->ecdsa = EC_KEY_new_by_curve_name(k->ecdsa_nid);
-			if (k->ecdsa == NULL)
-				fatal("%s: EC_KEY_new_by_curve_name failed",
-				    __func__);
-			q = EC_POINT_new(EC_KEY_get0_group(k->ecdsa));
-			if (q == NULL)
-				fatal("%s: BN_new failed", __func__);
-			if ((exponent = BN_new()) == NULL)
-				fatal("%s: BN_new failed", __func__);
-			buffer_get_ecpoint(&e->request,
-				EC_KEY_get0_group(k->ecdsa), q);
-			buffer_get_bignum2(&e->request, exponent);
-			if (EC_KEY_set_public_key(k->ecdsa, q) != 1)
-				fatal("%s: EC_KEY_set_public_key failed",
-				    __func__);
-			if (EC_KEY_set_private_key(k->ecdsa, exponent) != 1)
-				fatal("%s: EC_KEY_set_private_key failed",
-				    __func__);
-			if (key_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
-			    EC_KEY_get0_public_key(k->ecdsa)) != 0)
-				fatal("%s: bad ECDSA public key", __func__);
-			if (key_ec_validate_private(k->ecdsa) != 0)
-				fatal("%s: bad ECDSA private key", __func__);
-			BN_clear_free(exponent);
-			EC_POINT_free(q);
-			break;
-		case KEY_ECDSA_CERT:
-			cert = buffer_get_string(&e->request, &len);
-			if ((k = key_from_blob(cert, len)) == NULL)
-				fatal("Certificate parse failed");
-			free(cert);
-			key_add_private(k);
-			if ((exponent = BN_new()) == NULL)
-				fatal("%s: BN_new failed", __func__);
-			buffer_get_bignum2(&e->request, exponent);
-			if (EC_KEY_set_private_key(k->ecdsa, exponent) != 1)
-				fatal("%s: EC_KEY_set_private_key failed",
-				    __func__);
-			if (key_ec_validate_public(EC_KEY_get0_group(k->ecdsa),
-			    EC_KEY_get0_public_key(k->ecdsa)) != 0 ||
-			    key_ec_validate_private(k->ecdsa) != 0)
-				fatal("%s: bad ECDSA key", __func__);
-			BN_clear_free(exponent);
-			break;
-#endif /* OPENSSL_HAS_ECC */
-		case KEY_RSA:
-			k = key_new_private(type);
-			buffer_get_bignum2(&e->request, k->rsa->n);
-			buffer_get_bignum2(&e->request, k->rsa->e);
-			buffer_get_bignum2(&e->request, k->rsa->d);
-			buffer_get_bignum2(&e->request, k->rsa->iqmp);
-			buffer_get_bignum2(&e->request, k->rsa->p);
-			buffer_get_bignum2(&e->request, k->rsa->q);
+		if (rsa_generate_additional_parameters(k->rsa) != 0)
+			fatal("%s: rsa_generate_additional_parameters "
+			    "error", __func__);
 
-			/* Generate additional parameters */
-			rsa_generate_additional_parameters(k->rsa);
-			break;
-		case KEY_RSA_CERT_V00:
-		case KEY_RSA_CERT:
-			cert = buffer_get_string(&e->request, &len);
-			if ((k = key_from_blob(cert, len)) == NULL)
-				fatal("Certificate parse failed");
-			free(cert);
-			key_add_private(k);
-			buffer_get_bignum2(&e->request, k->rsa->d);
-			buffer_get_bignum2(&e->request, k->rsa->iqmp);
-			buffer_get_bignum2(&e->request, k->rsa->p);
-			buffer_get_bignum2(&e->request, k->rsa->q);
-			break;
-		default:
-			free(type_name);
-			buffer_clear(&e->request);
-			goto send;
-		}
-		free(type_name);
-		break;
-	}
-	/* enable blinding */
-	switch (k->type) {
-	case KEY_RSA:
-	case KEY_RSA_CERT_V00:
-	case KEY_RSA_CERT:
-	case KEY_RSA1:
+		/* enable blinding */
 		if (RSA_blinding_on(k->rsa, NULL) != 1) {
 			error("process_add_identity: RSA_blinding_on failed");
 			key_free(k);
 			goto send;
 		}
 		break;
+#endif /* WITH_SSH1 */
+	case 2:
+		k = key_private_deserialize(&e->request);
+		if (k == NULL) {
+			buffer_clear(&e->request);
+			goto send;
+		}
+		break;
 	}
-	comment = buffer_get_string(&e->request, NULL);
-	if (k == NULL) {
-		free(comment);
+	if (k == NULL)
 		goto send;
-	}
+	comment = buffer_get_string(&e->request, NULL);
+
 	while (buffer_len(&e->request)) {
 		switch ((type = buffer_get_char(&e->request))) {
 		case SSH_AGENT_CONSTRAIN_LIFETIME:
@@ -663,7 +571,7 @@ process_lock_agent(SocketEntry *e, int lock)
 	passwd = buffer_get_string(&e->request, NULL);
 	if (locked && !lock && strcmp(passwd, lock_passwd) == 0) {
 		locked = 0;
-		memset(lock_passwd, 0, strlen(lock_passwd));
+		explicit_bzero(lock_passwd, strlen(lock_passwd));
 		free(lock_passwd);
 		lock_passwd = NULL;
 		success = 1;
@@ -672,7 +580,7 @@ process_lock_agent(SocketEntry *e, int lock)
 		lock_passwd = xstrdup(passwd);
 		success = 1;
 	}
-	memset(passwd, 0, strlen(passwd));
+	explicit_bzero(passwd, strlen(passwd));
 	free(passwd);
 
 	buffer_put_int(&e->output, 1);
@@ -771,6 +679,9 @@ process_remove_smartcard_key(SocketEntry *e)
 		tab = idtab_lookup(version);
 		for (id = TAILQ_FIRST(&tab->idlist); id; id = nxt) {
 			nxt = TAILQ_NEXT(id, next);
+			/* Skip file--based keys */
+			if (id->provider == NULL)
+				continue;
 			if (!strcmp(provider, id->provider)) {
 				TAILQ_REMOVE(&tab->idlist, id, next);
 				free_identity(id);
@@ -839,6 +750,7 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_UNLOCK:
 		process_lock_agent(e, type == SSH_AGENTC_LOCK);
 		break;
+#ifdef WITH_SSH1
 	/* ssh1 */
 	case SSH_AGENTC_RSA_CHALLENGE:
 		process_authentication_challenge1(e);
@@ -856,6 +768,7 @@ process_message(SocketEntry *e)
 	case SSH_AGENTC_REMOVE_ALL_RSA_IDENTITIES:
 		process_remove_all_identities(e, 1);
 		break;
+#endif
 	/* ssh2 */
 	case SSH2_AGENTC_SIGN_REQUEST:
 		process_sign_request2(e);
@@ -1055,6 +968,7 @@ after_select(fd_set *readset, fd_set *writeset)
 					break;
 				}
 				buffer_append(&sockets[i].input, buf, len);
+				explicit_bzero(buf, sizeof(buf));
 				process_message(&sockets[i]);
 			}
 			break;
@@ -1066,6 +980,9 @@ after_select(fd_set *readset, fd_set *writeset)
 static void
 cleanup_socket(void)
 {
+	if (cleanup_pid != 0 && getpid() != cleanup_pid)
+		return;
+	debug("%s: cleanup", __func__);
 	if (socket_name[0])
 		unlink(socket_name);
 	if (socket_dir[0])
@@ -1107,15 +1024,10 @@ check_parent_exists(void)
 static void
 usage(void)
 {
-	fprintf(stderr, "usage: %s [options] [command [arg ...]]\n",
-	    __progname);
-	fprintf(stderr, "Options:\n");
-	fprintf(stderr, "  -c          Generate C-shell commands on stdout.\n");
-	fprintf(stderr, "  -s          Generate Bourne shell commands on stdout.\n");
-	fprintf(stderr, "  -k          Kill the current agent.\n");
-	fprintf(stderr, "  -d          Debug mode.\n");
-	fprintf(stderr, "  -a socket   Bind agent socket to given name.\n");
-	fprintf(stderr, "  -t life     Default identity lifetime (seconds).\n");
+	fprintf(stderr,
+	    "usage: ssh-agent [-c | -s] [-d] [-a bind_address] [-t life]\n"
+	    "                 [command [arg ...]]\n"
+	    "       ssh-agent [-c | -s] -k\n");
 	exit(1);
 }
 
@@ -1127,17 +1039,16 @@ main(int ac, char **av)
 	u_int nalloc;
 	char *shell, *format, *pidstr, *agentsocket = NULL;
 	fd_set *readsetp = NULL, *writesetp = NULL;
-	struct sockaddr_un sunaddr;
 #ifdef HAVE_SETRLIMIT
 	struct rlimit rlim;
 #endif
-	int prev_mask;
 	extern int optind;
 	extern char *optarg;
 	pid_t pid;
 	char pidstrbuf[1 + 3 * sizeof pid];
 	struct timeval *tvp = NULL;
 	size_t len;
+	mode_t prev_mask;
 
 	/* Ensure that fds 0, 1 and 2 are open or directed to /dev/null */
 	sanitise_stdfd();
@@ -1151,7 +1062,9 @@ main(int ac, char **av)
 	prctl(PR_SET_DUMPABLE, 0);
 #endif
 
+#ifdef WITH_OPENSSL
 	OpenSSL_add_all_algorithms();
+#endif
 
 	__progname = ssh_get_progname(av[0]);
 	seed_rng();
@@ -1248,27 +1161,14 @@ main(int ac, char **av)
 	 * Create socket early so it will exist before command gets run from
 	 * the parent.
 	 */
-	sock = socket(AF_UNIX, SOCK_STREAM, 0);
-	if (sock < 0) {
-		perror("socket");
-		*socket_name = '\0'; /* Don't unlink any existing file */
-		cleanup_exit(1);
-	}
-	memset(&sunaddr, 0, sizeof(sunaddr));
-	sunaddr.sun_family = AF_UNIX;
-	strlcpy(sunaddr.sun_path, socket_name, sizeof(sunaddr.sun_path));
 	prev_mask = umask(0177);
-	if (bind(sock, (struct sockaddr *) &sunaddr, sizeof(sunaddr)) < 0) {
-		perror("bind");
+	sock = unix_listener(socket_name, SSH_LISTEN_BACKLOG, 0);
+	if (sock < 0) {
+		/* XXX - unix_listener() calls error() not perror() */
 		*socket_name = '\0'; /* Don't unlink any existing file */
-		umask(prev_mask);
 		cleanup_exit(1);
 	}
 	umask(prev_mask);
-	if (listen(sock, SSH_LISTEN_BACKLOG) < 0) {
-		perror("listen");
-		cleanup_exit(1);
-	}
 
 	/*
 	 * Fork, and have the parent execute the command, if any, or present
@@ -1336,6 +1236,8 @@ main(int ac, char **av)
 #endif
 
 skip:
+
+	cleanup_pid = getpid();
 
 #ifdef ENABLE_PKCS11
 	pkcs11_init(0);

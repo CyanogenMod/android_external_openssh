@@ -40,6 +40,7 @@
 #include "packet.h"
 #include "log.h"
 #include "buffer.h"
+#include "misc.h"
 #include "servconf.h"
 #include "uidswap.h"
 #include "key.h"
@@ -157,7 +158,8 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 	if (problem)
 		goto out;
 
-	if (!krb5_kuserok(authctxt->krb5_ctx, authctxt->krb5_user, client)) {
+	if (!krb5_kuserok(authctxt->krb5_ctx, authctxt->krb5_user,
+	    authctxt->pw->pw_name)) {
 		problem = -1;
 		goto out;
 	}
@@ -201,7 +203,7 @@ auth_krb5_password(Authctxt *authctxt, const char *password)
 		if (authctxt->krb5_ctx != NULL && problem!=-1) {
 			errmsg = krb5_get_error_message(authctxt->krb5_ctx,
 			    problem);
-			debug("Kerberos password authentication failed: %s",
+ 			debug("Kerberos password authentication failed: %s",
 			    errmsg);
 			krb5_free_error_message(authctxt->krb5_ctx, errmsg);
 		} else

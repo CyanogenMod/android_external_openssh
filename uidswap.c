@@ -1,4 +1,4 @@
-/* $OpenBSD: uidswap.c,v 1.35 2006/08/03 03:34:42 deraadt Exp $ */
+/* $OpenBSD: uidswap.c,v 1.36 2013/11/08 11:15:19 dtucker Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -20,18 +20,13 @@
 #include <string.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <stdlib.h>
 
 #include <grp.h>
 
 #include "log.h"
 #include "uidswap.h"
 #include "xmalloc.h"
-
-#ifdef ANDROID
-#include <private/android_filesystem_config.h>
-#include <sys/capability.h>
-#include <linux/prctl.h>
-#endif
 
 /*
  * Note: all these functions must work in all of the following cases:
@@ -139,7 +134,9 @@ temporarily_use_uid(struct passwd *pw)
 void
 permanently_drop_suid(uid_t uid)
 {
+#ifndef HAVE_CYGWIN
 	uid_t old_uid = getuid();
+#endif
 
 	debug("permanently_drop_suid: %u", (u_int)uid);
 	if (setresuid(uid, uid, uid) < 0)
@@ -202,11 +199,9 @@ restore_uid(void)
 void
 permanently_set_uid(struct passwd *pw)
 {
+#ifndef HAVE_CYGWIN
 	uid_t old_uid = getuid();
 	gid_t old_gid = getgid();
-#ifdef ANDROID
-	struct __user_cap_header_struct header;
-	struct __user_cap_data_struct cap;
 #endif
 
 	if (pw == NULL)
@@ -215,27 +210,6 @@ permanently_set_uid(struct passwd *pw)
 		fatal("permanently_set_uid: temporarily_use_uid effective");
 	debug("permanently_set_uid: %u/%u", (u_int)pw->pw_uid,
 	    (u_int)pw->pw_gid);
-
-#ifdef ANDROID
-	if (pw->pw_uid == AID_SHELL) {
-		prctl(PR_SET_KEEPCAPS, 1, 0, 0, 0);
-
-		/* add extra groups needed for shell user:
-		** AID_LOG to read system logs (adb logcat)
-		** AID_INPUT to diagnose input issues (getevent)
-		** AID_INET to diagnose network issues (netcfg, ping)
-		** AID_GRAPHICS to access the frame buffer
-		** AID_NET_BT and AID_NET_BT_ADMIN to diagnose bluetooth (hcidump)
-		** AID_SDCARD_RW to allow writing to the SD card
-		** AID_MOUNT to allow unmounting the SD card before rebooting
-		** AID_NET_BW_STATS to read out qtaguid statistics
-		*/
-		gid_t groups[] = { AID_LOG, AID_INPUT, AID_INET, AID_GRAPHICS,
-						   AID_NET_BT, AID_NET_BT_ADMIN, AID_SDCARD_RW,
-						   AID_SDCARD_R, AID_MOUNT, AID_NET_BW_STATS };
-		setgroups(sizeof(groups)/sizeof(groups[0]), groups);
-	}
-#endif
 
 	if (setresgid(pw->pw_gid, pw->pw_gid, pw->pw_gid) < 0)
 		fatal("setresgid %u: %.100s", (u_int)pw->pw_gid, strerror(errno));
@@ -280,16 +254,4 @@ permanently_set_uid(struct passwd *pw)
 		    __func__, (u_int)getuid(), (u_int)geteuid(),
 		    (u_int)pw->pw_uid);
 	}
-
-#ifdef ANDROID
-	if (pw->pw_uid == AID_SHELL) {
-		/* set CAP_SYS_BOOT capability, so "adb reboot" will succeed */
-		header.version = _LINUX_CAPABILITY_VERSION;
-		header.pid = 0;
-		cap.effective = cap.permitted = (1 << CAP_SYS_BOOT);
-		cap.inheritable = 0;
-		capset(&header, &cap);
-	}
-#endif
-
 }

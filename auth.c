@@ -1,4 +1,4 @@
-/* $OpenBSD: auth.c,v 1.103 2013/05/19 02:42:42 djm Exp $ */
+/* $OpenBSD: auth.c,v 1.106 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Copyright (c) 2000 Markus Friedl.  All rights reserved.
  *
@@ -56,6 +56,7 @@
 #include "groupaccess.h"
 #include "log.h"
 #include "buffer.h"
+#include "misc.h"
 #include "servconf.h"
 #include "key.h"
 #include "hostfile.h"
@@ -63,7 +64,6 @@
 #include "auth-options.h"
 #include "canohost.h"
 #include "uidswap.h"
-#include "misc.h"
 #include "packet.h"
 #include "loginrec.h"
 #ifdef GSSAPI
@@ -326,6 +326,20 @@ auth_log(Authctxt *authctxt, int authenticated, int partial,
 #endif
 }
 
+
+void
+auth_maxtries_exceeded(Authctxt *authctxt)
+{
+	packet_disconnect("Too many authentication failures for "
+	    "%s%.100s from %.200s port %d %s",
+	    authctxt->valid ? "" : "invalid user ",
+	    authctxt->user,
+	    get_remote_ipaddr(),
+	    get_remote_port(),
+	    compat20 ? "ssh2" : "ssh1");
+	/* NOTREACHED */
+}
+
 /*
  * Check whether root logins are disallowed.
  */
@@ -485,8 +499,6 @@ auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
 		}
 		strlcpy(buf, cp, sizeof(buf));
 
-#ifndef ANDROID
-		/* /data is owned by system user, which causes this check to fail */
 		if (stat(buf, &st) < 0 ||
 		    (!platform_sys_dir_uid(st.st_uid) && st.st_uid != uid) ||
 		    (st.st_mode & 022) != 0) {
@@ -494,7 +506,6 @@ auth_secure_path(const char *name, struct stat *stp, const char *pw_dir,
 			    "bad ownership or modes for directory %s", buf);
 			return -1;
 		}
-#endif
 
 		/* If are past the homedir then we can stop */
 		if (comparehome && strcmp(homedir, buf) == 0)
@@ -662,6 +673,7 @@ getpwnamallow(const char *user)
 int
 auth_key_is_revoked(Key *key)
 {
+#ifdef WITH_OPENSSL
 	char *key_fp;
 
 	if (options.revoked_keys_file == NULL)
@@ -674,6 +686,7 @@ auth_key_is_revoked(Key *key)
 	default:
 		goto revoked;
 	}
+#endif
 	debug3("%s: treating %s as a key list", __func__,
 	    options.revoked_keys_file);
 	switch (key_in_file(key, options.revoked_keys_file, 0)) {
@@ -685,6 +698,7 @@ auth_key_is_revoked(Key *key)
 		error("Revoked keys file is unreadable: refusing public key "
 		    "authentication");
 		return 1;
+#ifdef WITH_OPENSSL
 	case 1:
  revoked:
 		/* Key revoked */
@@ -693,6 +707,7 @@ auth_key_is_revoked(Key *key)
 		    "%s key %s ", key_type(key), key_fp);
 		free(key_fp);
 		return 1;
+#endif
 	}
 	fatal("key_in_file returned junk");
 }
