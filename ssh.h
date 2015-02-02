@@ -97,3 +97,11 @@
 
 /* Listen backlog for sshd, ssh-agent and forwarding sockets */
 #define SSH_LISTEN_BACKLOG		128
+
+/* This is implemented in libc as "ndk_cruft", as a no-op
+ * New platforms in L, starting with aarch64, do not have ndk_cruft,
+ * so implement a no-op here */
+#ifdef __LP64__
+// This was removed from BSD.
+#define arc4random_stir(x) do {} while (0);
+#endif
