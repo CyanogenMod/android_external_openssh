@@ -1594,11 +1594,13 @@ child_close_fds(void)
 	/* XXX better use close-on-exec? -markus */
 	channel_close_all();
 
+#ifndef ANDROID
 	/*
 	 * Close any extra file descriptors.  Note that there may still be
 	 * descriptors left by system functions.  They will be closed later.
 	 */
 	endpwent();
+#endif
 
 	/*
 	 * Close any extra open file descriptors so that we don't have them
