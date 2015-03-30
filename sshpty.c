@@ -1,4 +1,4 @@
-/* $OpenBSD: sshpty.c,v 1.28 2007/09/11 23:49:09 stevesk Exp $ */
+/* $OpenBSD: sshpty.c,v 1.29 2014/09/03 18:55:07 djm Exp $ */
 /*
  * Author: Tatu Ylonen <ylo@cs.hut.fi>
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
@@ -104,9 +104,6 @@ void
 pty_make_controlling_tty(int *ttyfd, const char *tty)
 {
 	int fd;
-#ifdef USE_VHANGUP
-	void *old;
-#endif /* USE_VHANGUP */
 
 #ifdef _UNICOS
 	if (setsid() < 0)
@@ -162,21 +159,11 @@ pty_make_controlling_tty(int *ttyfd, const char *tty)
 	if (setpgrp(0,0) < 0)
 		error("SETPGRP %s",strerror(errno));
 #endif /* NEED_SETPGRP */
-#ifdef USE_VHANGUP
-	old = signal(SIGHUP, SIG_IGN);
-	vhangup();
-	signal(SIGHUP, old);
-#endif /* USE_VHANGUP */
 	fd = open(tty, O_RDWR);
 	if (fd < 0) {
 		error("%.100s: %.100s", tty, strerror(errno));
 	} else {
-#ifdef USE_VHANGUP
-		close(*ttyfd);
-		*ttyfd = fd;
-#else /* USE_VHANGUP */
 		close(fd);
-#endif /* USE_VHANGUP */
 	}
 	/* Verify that we now have a controlling tty. */
 	fd = open(_PATH_TTY, O_WRONLY);
@@ -214,13 +201,8 @@ pty_setowner(struct passwd *pw, const char *tty)
 
 	/* Determine the group to make the owner of the tty. */
 	grp = getgrnam("tty");
-	if (grp) {
-		gid = grp->gr_gid;
-		mode = S_IRUSR | S_IWUSR | S_IWGRP;
-	} else {
-		gid = pw->pw_gid;
-		mode = S_IRUSR | S_IWUSR | S_IWGRP | S_IWOTH;
-	}
+	gid = (grp != NULL) ? grp->gr_gid : pw->pw_gid;
+	mode = (grp != NULL) ? 0622 : 0600;
 
 	/*
 	 * Change owner and mode of the tty as required.

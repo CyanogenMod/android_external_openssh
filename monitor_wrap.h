@@ -1,4 +1,4 @@
-/* $OpenBSD: monitor_wrap.h,v 1.23 2011/06/17 21:44:31 djm Exp $ */
+/* $OpenBSD: monitor_wrap.h,v 1.26 2015/02/16 22:13:32 djm Exp $ */
 
 /*
  * Copyright 2002 Niels Provos <provos@citi.umich.edu>
@@ -40,7 +40,7 @@ struct Authctxt;
 void mm_log_handler(LogLevel, const char *, void *);
 int mm_is_monitor(void);
 DH *mm_choose_dh(int, int, int);
-int mm_key_sign(Key *, u_char **, u_int *, u_char *, u_int);
+int mm_key_sign(Key *, u_char **, u_int *, const u_char *, u_int);
 void mm_inform_authserv(char *, char *);
 struct passwd *mm_getpwnamallow(const char *);
 char *mm_auth2_read_banner(void);
@@ -87,7 +87,7 @@ void mm_ssh1_session_id(u_char *);
 int mm_ssh1_session_key(BIGNUM *);
 
 /* Key export functions */
-struct Newkeys *mm_newkeys_from_blob(u_char *, int);
+struct newkeys *mm_newkeys_from_blob(u_char *, int);
 int mm_newkeys_to_blob(int, u_char **, u_int *);
 
 void monitor_apply_keystate(struct monitor *);
@@ -102,30 +102,7 @@ int mm_bsdauth_respond(void *, u_int, char **);
 int mm_skey_query(void *, char **, char **, u_int *, char ***, u_int **);
 int mm_skey_respond(void *, u_int, char **);
 
-/* jpake */
-struct modp_group;
-void mm_auth2_jpake_get_pwdata(struct Authctxt *, BIGNUM **, char **, char **);
-void mm_jpake_step1(struct modp_group *, u_char **, u_int *,
-    BIGNUM **, BIGNUM **, BIGNUM **, BIGNUM **,
-    u_char **, u_int *, u_char **, u_int *);
-void mm_jpake_step2(struct modp_group *, BIGNUM *,
-    BIGNUM *, BIGNUM *, BIGNUM *, BIGNUM *,
-    const u_char *, u_int, const u_char *, u_int,
-    const u_char *, u_int, const u_char *, u_int,
-    BIGNUM **, u_char **, u_int *);
-void mm_jpake_key_confirm(struct modp_group *, BIGNUM *, BIGNUM *,
-    BIGNUM *, BIGNUM *, BIGNUM *, BIGNUM *, BIGNUM *,
-    const u_char *, u_int, const u_char *, u_int,
-    const u_char *, u_int, const u_char *, u_int,
-    BIGNUM **, u_char **, u_int *);
-int mm_jpake_check_confirm(const BIGNUM *,
-    const u_char *, u_int, const u_char *, u_int, const u_char *, u_int);
-
-
 /* zlib allocation hooks */
-
-void *mm_zalloc(struct mm_master *, u_int, u_int);
-void mm_zfree(struct mm_master *, void *);
 void mm_init_compression(struct mm_master *);
 
 #endif /* _MM_WRAP_H_ */

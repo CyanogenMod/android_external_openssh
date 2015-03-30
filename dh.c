@@ -1,4 +1,4 @@
-/* $OpenBSD: dh.c,v 1.48 2009/10/01 11:37:33 grunk Exp $ */
+/* $OpenBSD: dh.c,v 1.55 2015/01/20 23:14:00 deraadt Exp $ */
 /*
  * Copyright (c) 2000 Niels Provos.  All rights reserved.
  *
@@ -25,7 +25,7 @@
 
 #include "includes.h"
 
-#include <sys/param.h>
+#include <sys/param.h>	/* MIN */
 
 #include <openssl/bn.h>
 #include <openssl/dh.h>
@@ -34,11 +34,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h>
 
 #include "dh.h"
 #include "pathnames.h"
 #include "log.h"
 #include "misc.h"
+#include "ssherr.h"
 
 static int
 parse_prime(int linenum, char *line, struct dhgroup *dhg)
@@ -48,6 +50,7 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 	const char *errstr = NULL;
 	long long n;
 
+	dhg->p = dhg->g = NULL;
 	cp = line;
 	if ((arg = strdelim(&cp)) == NULL)
 		return 0;
@@ -59,66 +62,84 @@ parse_prime(int linenum, char *line, struct dhgroup *dhg)
 
 	/* time */
 	if (cp == NULL || *arg == '\0')
-		goto fail;
+		goto truncated;
 	arg = strsep(&cp, " "); /* type */
 	if (cp == NULL || *arg == '\0')
-		goto fail;
+		goto truncated;
 	/* Ensure this is a safe prime */
 	n = strtonum(arg, 0, 5, &errstr);
-	if (errstr != NULL || n != MODULI_TYPE_SAFE)
+	if (errstr != NULL || n != MODULI_TYPE_SAFE) {
+		error("moduli:%d: type is not %d", linenum, MODULI_TYPE_SAFE);
 		goto fail;
+	}
 	arg = strsep(&cp, " "); /* tests */
 	if (cp == NULL || *arg == '\0')
-		goto fail;
+		goto truncated;
 	/* Ensure prime has been tested and is not composite */
 	n = strtonum(arg, 0, 0x1f, &errstr);
 	if (errstr != NULL ||
-	    (n & MODULI_TESTS_COMPOSITE) || !(n & ~MODULI_TESTS_COMPOSITE))
+	    (n & MODULI_TESTS_COMPOSITE) || !(n & ~MODULI_TESTS_COMPOSITE)) {
+		error("moduli:%d: invalid moduli tests flag", linenum);
 		goto fail;
+	}
 	arg = strsep(&cp, " "); /* tries */
 	if (cp == NULL || *arg == '\0')
-		goto fail;
+		goto truncated;
 	n = strtonum(arg, 0, 1<<30, &errstr);
-	if (errstr != NULL || n == 0)
+	if (errstr != NULL || n == 0) {
+		error("moduli:%d: invalid primality trial count", linenum);
 		goto fail;
+	}
 	strsize = strsep(&cp, " "); /* size */
 	if (cp == NULL || *strsize == '\0' ||
 	    (dhg->size = (int)strtonum(strsize, 0, 64*1024, &errstr)) == 0 ||
-	    errstr)
+	    errstr) {
+		error("moduli:%d: invalid prime length", linenum);
 		goto fail;
+	}
 	/* The whole group is one bit larger */
 	dhg->size++;
 	gen = strsep(&cp, " "); /* gen */
 	if (cp == NULL || *gen == '\0')
-		goto fail;
+		goto truncated;
 	prime = strsep(&cp, " "); /* prime */
-	if (cp != NULL || *prime == '\0')
+	if (cp != NULL || *prime == '\0') {
+ truncated:
+		error("moduli:%d: truncated", linenum);
 		goto fail;
+	}
 
-	if ((dhg->g = BN_new()) == NULL)
-		fatal("parse_prime: BN_new failed");
-	if ((dhg->p = BN_new()) == NULL)
-		fatal("parse_prime: BN_new failed");
-	if (BN_hex2bn(&dhg->g, gen) == 0)
-		goto failclean;
+	if ((dhg->g = BN_new()) == NULL ||
+	    (dhg->p = BN_new()) == NULL) {
+		error("parse_prime: BN_new failed");
+		goto fail;
+	}
+	if (BN_hex2bn(&dhg->g, gen) == 0) {
+		error("moduli:%d: could not parse generator value", linenum);
+		goto fail;
+	}
+	if (BN_hex2bn(&dhg->p, prime) == 0) {
+		error("moduli:%d: could not parse prime value", linenum);
+		goto fail;
+	}
+	if (BN_num_bits(dhg->p) != dhg->size) {
+		error("moduli:%d: prime has wrong size: actual %d listed %d",
+		    linenum, BN_num_bits(dhg->p), dhg->size - 1);
+		goto fail;
+	}
+	if (BN_cmp(dhg->g, BN_value_one()) <= 0) {
+		error("moduli:%d: generator is invalid", linenum);
+		goto fail;
+	}
+	return 1;
 
-	if (BN_hex2bn(&dhg->p, prime) == 0)
-		goto failclean;
-
-	if (BN_num_bits(dhg->p) != dhg->size)
-		goto failclean;
-
-	if (BN_is_zero(dhg->g) || BN_is_one(dhg->g))
-		goto failclean;
-
-	return (1);
-
- failclean:
-	BN_clear_free(dhg->g);
-	BN_clear_free(dhg->p);
  fail:
-	error("Bad prime description in line %d", linenum);
-	return (0);
+	if (dhg->g != NULL)
+		BN_clear_free(dhg->g);
+	if (dhg->p != NULL)
+		BN_clear_free(dhg->p);
+	dhg->g = dhg->p = NULL;
+	return 0;
 }
 
 DH *
@@ -180,9 +201,11 @@ choose_dh(int min, int wantbits, int max)
 		break;
 	}
 	fclose(f);
-	if (linenum != which+1)
-		fatal("WARNING: line %d disappeared in %s, giving up",
+	if (linenum != which+1) {
+		logit("WARNING: line %d disappeared in %s, giving up",
 		    which, _PATH_DH_PRIMES);
+		return (dh_new_group14());
+	}
 
 	return (dh_new_group(dhg.g, dhg.p));
 }
@@ -231,34 +254,27 @@ dh_pub_is_valid(DH *dh, BIGNUM *dh_pub)
 	return 0;
 }
 
-void
+int
 dh_gen_key(DH *dh, int need)
 {
-	int i, bits_set, tries = 0;
+	int pbits;
 
-	if (dh->p == NULL)
-		fatal("dh_gen_key: dh->p == NULL");
-	if (need > INT_MAX / 2 || 2 * need >= BN_num_bits(dh->p))
-		fatal("dh_gen_key: group too small: %d (2*need %d)",
-		    BN_num_bits(dh->p), 2*need);
-	do {
-		if (dh->priv_key != NULL)
-			BN_clear_free(dh->priv_key);
-		if ((dh->priv_key = BN_new()) == NULL)
-			fatal("dh_gen_key: BN_new failed");
-		/* generate a 2*need bits random private exponent */
-		if (!BN_rand(dh->priv_key, 2*need, 0, 0))
-			fatal("dh_gen_key: BN_rand failed");
-		if (DH_generate_key(dh) == 0)
-			fatal("DH_generate_key");
-		for (i = 0, bits_set = 0; i <= BN_num_bits(dh->priv_key); i++)
-			if (BN_is_bit_set(dh->priv_key, i))
-				bits_set++;
-		debug2("dh_gen_key: priv key bits set: %d/%d",
-		    bits_set, BN_num_bits(dh->priv_key));
-		if (tries++ > 10)
-			fatal("dh_gen_key: too many bad keys: giving up");
-	} while (!dh_pub_is_valid(dh, dh->pub_key));
+	if (need < 0 || dh->p == NULL ||
+	    (pbits = BN_num_bits(dh->p)) <= 0 ||
+	    need > INT_MAX / 2 || 2 * need >= pbits)
+		return SSH_ERR_INVALID_ARGUMENT;
+#if !defined(OPENSSL_IS_BORINGSSL)
+	/* BoringSSL renamed |length| to |priv_length| to better reflect its
+	 * actual use. Also, BoringSSL recognises common groups and chooses the
+	 * length of the private exponent accoringly. */
+	dh->length = MIN(need * 2, pbits - 1);
+#endif
+	if (DH_generate_key(dh) == 0 ||
+	    !dh_pub_is_valid(dh, dh->pub_key)) {
+		BN_clear_free(dh->priv_key);
+		return SSH_ERR_LIBCRYPTO_ERROR;
+	}
+	return 0;
 }
 
 DH *
@@ -267,13 +283,12 @@ dh_new_group_asc(const char *gen, const char *modulus)
 	DH *dh;
 
 	if ((dh = DH_new()) == NULL)
-		fatal("dh_new_group_asc: DH_new");
-
-	if (BN_hex2bn(&dh->p, modulus) == 0)
-		fatal("BN_hex2bn p");
-	if (BN_hex2bn(&dh->g, gen) == 0)
-		fatal("BN_hex2bn g");
-
+		return NULL;
+	if (BN_hex2bn(&dh->p, modulus) == 0 ||
+	    BN_hex2bn(&dh->g, gen) == 0) {
+		DH_free(dh);
+		return NULL;
+	}
 	return (dh);
 }
 
@@ -288,7 +303,7 @@ dh_new_group(BIGNUM *gen, BIGNUM *modulus)
 	DH *dh;
 
 	if ((dh = DH_new()) == NULL)
-		fatal("dh_new_group: DH_new");
+		return NULL;
 	dh->p = modulus;
 	dh->g = gen;
 
@@ -330,17 +345,20 @@ dh_new_group14(void)
 
 /*
  * Estimates the group order for a Diffie-Hellman group that has an
- * attack complexity approximately the same as O(2**bits).  Estimate
- * with:  O(exp(1.9223 * (ln q)^(1/3) (ln ln q)^(2/3)))
+ * attack complexity approximately the same as O(2**bits).
+ * Values from NIST Special Publication 800-57: Recommendation for Key
+ * Management Part 1 (rev 3) limited by the recommended maximum value
+ * from RFC4419 section 3.
  */
 
-int
+u_int
 dh_estimate(int bits)
 {
-
+	if (bits <= 112)
+		return 2048;
 	if (bits <= 128)
-		return (1024);	/* O(2**86) */
+		return 3072;
 	if (bits <= 192)
-		return (2048);	/* O(2**116) */
-	return (4096);		/* O(2**156) */
+		return 7680;
+	return 8192;
 }

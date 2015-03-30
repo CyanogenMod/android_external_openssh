@@ -1,4 +1,4 @@
-%define ver 5.9p1
+%define ver 6.8p1
 %define rel 1
 
 # OpenSSH privilege separation requires a user & group ID
@@ -86,7 +86,7 @@ PreReq: initscripts >= 5.00
 %else
 Requires: initscripts >= 5.20
 %endif
-BuildRequires: perl, openssl-devel, tcp_wrappers
+BuildRequires: perl, openssl-devel
 BuildRequires: /bin/login
 %if ! %{build6x}
 BuildPreReq: glibc-devel, pam
@@ -192,7 +192,6 @@ echo K5DIR=$K5DIR
 	--sysconfdir=%{_sysconfdir}/ssh \
 	--libexecdir=%{_libexecdir}/openssh \
 	--datadir=%{_datadir}/openssh \
-	--with-tcp-wrappers \
 	--with-rsh=%{_bindir}/rsh \
 	--with-default-path=/usr/local/bin:/bin:/usr/bin \
 	--with-superuser-path=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin \
@@ -335,7 +334,7 @@ fi
 
 %files
 %defattr(-,root,root)
-%doc CREDITS ChangeLog INSTALL LICENCE OVERVIEW README* PROTOCOL* TODO WARNING*
+%doc CREDITS ChangeLog INSTALL LICENCE OVERVIEW README* PROTOCOL* TODO
 %attr(0755,root,root) %{_bindir}/scp
 %attr(0644,root,root) %{_mandir}/man1/scp.1*
 %attr(0755,root,root) %dir %{_sysconfdir}/ssh

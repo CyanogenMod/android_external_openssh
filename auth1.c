@@ -1,4 +1,4 @@
-/* $OpenBSD: auth1.c,v 1.75 2010/08/31 09:58:37 djm Exp $ */
+/* $OpenBSD: auth1.c,v 1.82 2014/07/15 15:54:14 millert Exp $ */
 /*
  * Copyright (c) 1995 Tatu Ylonen <ylo@cs.hut.fi>, Espoo, Finland
  *                    All rights reserved
@@ -11,6 +11,8 @@
  */
 
 #include "includes.h"
+
+#ifdef WITH_SSH1
 
 #include <sys/types.h>
 
@@ -27,6 +29,7 @@
 #include "packet.h"
 #include "buffer.h"
 #include "log.h"
+#include "misc.h"
 #include "servconf.h"
 #include "compat.h"
 #include "key.h"
@@ -45,11 +48,11 @@
 extern ServerOptions options;
 extern Buffer loginmsg;
 
-static int auth1_process_password(Authctxt *, char *, size_t);
-static int auth1_process_rsa(Authctxt *, char *, size_t);
-static int auth1_process_rhosts_rsa(Authctxt *, char *, size_t);
-static int auth1_process_tis_challenge(Authctxt *, char *, size_t);
-static int auth1_process_tis_response(Authctxt *, char *, size_t);
+static int auth1_process_password(Authctxt *);
+static int auth1_process_rsa(Authctxt *);
+static int auth1_process_rhosts_rsa(Authctxt *);
+static int auth1_process_tis_challenge(Authctxt *);
+static int auth1_process_tis_response(Authctxt *);
 
 static char *client_user = NULL;    /* Used to fill in remote user for PAM */
 
@@ -57,7 +60,7 @@ struct AuthMethod1 {
 	int type;
 	char *name;
 	int *enabled;
-	int (*method)(Authctxt *, char *, size_t);
+	int (*method)(Authctxt *);
 };
 
 const struct AuthMethod1 auth1_methods[] = {
@@ -112,7 +115,7 @@ get_authname(int type)
 
 /*ARGSUSED*/
 static int
-auth1_process_password(Authctxt *authctxt, char *info, size_t infolen)
+auth1_process_password(Authctxt *authctxt)
 {
 	int authenticated = 0;
 	char *password;
@@ -127,23 +130,17 @@ auth1_process_password(Authctxt *authctxt, char *info, size_t infolen)
 	packet_check_eom();
 
 	/* Try authentication with the password. */
-#ifndef ANDROID
 	authenticated = PRIVSEP(auth_password(authctxt, password));
 
-#else
-	/* no password authentication in android */
-	authenticated = 0;
-#endif
-
-	memset(password, 0, dlen);
-	xfree(password);
+	explicit_bzero(password, dlen);
+	free(password);
 
 	return (authenticated);
 }
 
 /*ARGSUSED*/
 static int
-auth1_process_rsa(Authctxt *authctxt, char *info, size_t infolen)
+auth1_process_rsa(Authctxt *authctxt)
 {
 	int authenticated = 0;
 	BIGNUM *n;
@@ -161,7 +158,7 @@ auth1_process_rsa(Authctxt *authctxt, char *info, size_t infolen)
 
 /*ARGSUSED*/
 static int
-auth1_process_rhosts_rsa(Authctxt *authctxt, char *info, size_t infolen)
+auth1_process_rhosts_rsa(Authctxt *authctxt)
 {
 	int keybits, authenticated = 0;
 	u_int bits;
@@ -193,14 +190,14 @@ auth1_process_rhosts_rsa(Authctxt *authctxt, char *info, size_t infolen)
 	    client_host_key);
 	key_free(client_host_key);
 
-	snprintf(info, infolen, " ruser %.100s", client_user);
+	auth_info(authctxt, "ruser %.100s", client_user);
 
 	return (authenticated);
 }
 
 /*ARGSUSED*/
 static int
-auth1_process_tis_challenge(Authctxt *authctxt, char *info, size_t infolen)
+auth1_process_tis_challenge(Authctxt *authctxt)
 {
 	char *challenge;
 
@@ -210,7 +207,7 @@ auth1_process_tis_challenge(Authctxt *authctxt, char *info, size_t infolen)
 	debug("sending challenge '%s'", challenge);
 	packet_start(SSH_SMSG_AUTH_TIS_CHALLENGE);
 	packet_put_cstring(challenge);
-	xfree(challenge);
+	free(challenge);
 	packet_send();
 	packet_write_wait();
 
@@ -219,7 +216,7 @@ auth1_process_tis_challenge(Authctxt *authctxt, char *info, size_t infolen)
 
 /*ARGSUSED*/
 static int
-auth1_process_tis_response(Authctxt *authctxt, char *info, size_t infolen)
+auth1_process_tis_response(Authctxt *authctxt)
 {
 	int authenticated = 0;
 	char *response;
@@ -228,8 +225,8 @@ auth1_process_tis_response(Authctxt *authctxt, char *info, size_t infolen)
 	response = packet_get_string(&dlen);
 	packet_check_eom();
 	authenticated = verify_response(authctxt, response);
-	memset(response, 'r', dlen);
-	xfree(response);
+	explicit_bzero(response, dlen);
+	free(response);
 
 	return (authenticated);
 }
@@ -242,28 +239,24 @@ static void
 do_authloop(Authctxt *authctxt)
 {
 	int authenticated = 0;
-	char info[1024];
 	int prev = 0, type = 0;
 	const struct AuthMethod1 *meth;
 
 	debug("Attempting authentication for %s%.100s.",
 	    authctxt->valid ? "" : "invalid user ", authctxt->user);
 
-	/* no password authentication in android */
-#ifndef ANDROID
 	/* If the user has no password, accept authentication immediately. */
 	if (options.permit_empty_passwd && options.password_authentication &&
 #ifdef KRB5
 	    (!options.kerberos_authentication || options.kerberos_or_local_passwd) &&
 #endif
-	    PRIVSEP(auth_password(authctxt, ""))) 
-#endif
-	    {
+	    PRIVSEP(auth_password(authctxt, ""))) {
 #ifdef USE_PAM
 		if (options.use_pam && (PRIVSEP(do_pam_account())))
 #endif
 		{
-			auth_log(authctxt, 1, "without authentication", "");
+			auth_log(authctxt, 1, 0, "without authentication",
+			    NULL);
 			return;
 		}
 	}
@@ -277,7 +270,6 @@ do_authloop(Authctxt *authctxt)
 		/* default to fail */
 		authenticated = 0;
 
-		info[0] = '\0';
 
 		/* Get a packet from the client. */
 		prev = type;
@@ -307,7 +299,7 @@ do_authloop(Authctxt *authctxt)
 			goto skip;
 		}
 
-		authenticated = meth->method(authctxt, info, sizeof(info));
+		authenticated = meth->method(authctxt);
 		if (authenticated == -1)
 			continue; /* "postponed" */
 
@@ -362,12 +354,10 @@ do_authloop(Authctxt *authctxt)
 
  skip:
 		/* Log before sending the reply */
-		auth_log(authctxt, authenticated, get_authname(type), info);
+		auth_log(authctxt, authenticated, 0, get_authname(type), NULL);
 
-		if (client_user != NULL) {
-			xfree(client_user);
-			client_user = NULL;
-		}
+		free(client_user);
+		client_user = NULL;
 
 		if (authenticated)
 			return;
@@ -376,7 +366,7 @@ do_authloop(Authctxt *authctxt)
 #ifdef SSH_AUDIT_EVENTS
 			PRIVSEP(audit_event(SSH_LOGIN_EXCEED_MAXTRIES));
 #endif
-			packet_disconnect(AUTH_FAIL_MSG, authctxt->user);
+			auth_maxtries_exceeded(authctxt);
 		}
 
 		packet_start(SSH_SMSG_FAILURE);
@@ -416,6 +406,11 @@ do_authentication(Authctxt *authctxt)
 		authctxt->pw = fakepw();
 	}
 
+	/* Configuration may have changed as a result of Match */
+	if (options.num_auth_methods != 0)
+		fatal("AuthenticationMethods is not supported with SSH "
+		    "protocol 1");
+
 	setproctitle("%s%s", authctxt->valid ? user : "unknown",
 	    use_privsep ? " [net]" : "");
 
@@ -445,3 +440,5 @@ do_authentication(Authctxt *authctxt)
 	packet_send();
 	packet_write_wait();
 }
+
+#endif /* WITH_SSH1 */

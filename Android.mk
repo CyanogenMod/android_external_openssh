@@ -6,41 +6,123 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
-    acss.c authfd.c authfile.c bufaux.c bufbn.c buffer.c \
-    canohost.c channels.c cipher.c cipher-acss.c cipher-aes.c \
-    cipher-bf1.c cipher-ctr.c cipher-3des1.c cleanup.c \
-    compat.c compress.c crc32.c deattack.c fatal.c hostfile.c \
-    log.c match.c md-sha256.c moduli.c nchan.c packet.c \
-    readpass.c rsa.c ttymodes.c xmalloc.c addrmatch.c \
-    atomicio.c key.c dispatch.c kex.c mac.c uidswap.c uuencode.c misc.c \
-    monitor_fdpass.c rijndael.c ssh-dss.c ssh-ecdsa.c ssh-rsa.c dh.c \
-    kexdh.c kexgex.c kexdhc.c kexgexc.c bufec.c kexecdh.c kexecdhc.c \
-    msg.c progressmeter.c dns.c entropy.c gss-genr.c umac.c jpake.c \
-    schnorr.c ssh-pkcs11.c roaming_dummy.c \
-    openbsd-compat/strtonum.c openbsd-compat/bsd-misc.c \
-    openbsd-compat/timingsafe_bcmp.c openbsd-compat/bsd-getpeereid.c \
-    openbsd-compat/readpassphrase.c openbsd-compat/vis.c \
-    openbsd-compat/port-tun.c openbsd-compat/setproctitle.c \
-    openbsd-compat/bsd-closefrom.c  openbsd-compat/getopt.c \
-    openbsd-compat/rresvport.c openbsd-compat/bindresvport.c \
-    openbsd-compat/bsd-statvfs.c openbsd-compat/xmmap.c \
-    openbsd-compat/port-linux.c openbsd-compat/strmode.c \
+    addrmatch.c \
+    atomicio.c \
+    authfd.c \
+    authfile.c \
+    bitmap.c \
+    blocks.c \
+    bufaux.c \
+    bufbn.c \
+    bufec.c \
+    buffer.c \
+    canohost.c \
+    chacha.c \
+    channels.c \
+    cipher-aes.c \
+    cipher-aesctr.c \
+    cipher-chachapoly.c \
+    cipher-ctr.c \
+    cipher.c \
+    cleanup.c \
+    compat.c \
+    crc32.c \
+    deattack.c \
+    dh.c \
+    digest-openssl.c \
+    dispatch.c \
+    dns.c \
+    ed25519.c \
+    entropy.c \
+    fatal.c \
+    fe25519.c \
+    ge25519.c \
+    gss-genr.c \
+    hash.c \
+    hmac.c \
+    hostfile.c \
+    kex.c \
+    kexc25519.c \
+    kexc25519c.c \
+    kexdh.c \
+    kexdhc.c \
+    kexecdh.c \
+    kexecdhc.c \
+    kexgex.c \
+    kexgexc.c \
+    key.c \
+    krl.c \
+    log.c \
+    mac.c \
+    match.c \
+    md-sha256.c \
+    misc.c \
+    moduli.c \
+    monitor_fdpass.c \
+    msg.c \
+    nchan.c \
+    opacket.c \
+    openbsd-compat/bcrypt_pbkdf.c \
+    openbsd-compat/bindresvport.c \
+    openbsd-compat/blowfish.c \
+    openbsd-compat/bsd-closefrom.c \
+    openbsd-compat/bsd-getpeereid.c \
+    openbsd-compat/bsd-misc.c \
     openbsd-compat/bsd-openpty.c \
+    openbsd-compat/bsd-statvfs.c \
+    openbsd-compat/explicit_bzero.c \
     openbsd-compat/fmt_scaled.c \
-    openbsd-compat/pwcache.c openbsd-compat/glob.c \
-    openbsd-compat/bsd-arc4random.c \
+    openbsd-compat/getopt_long.c \
+    openbsd-compat/glob.c \
+    openbsd-compat/openssl-compat.c \
+    openbsd-compat/port-linux.c \
+    openbsd-compat/port-tun.c \
+    openbsd-compat/pwcache.c \
+    openbsd-compat/readpassphrase.c \
+    openbsd-compat/reallocarray.c \
+    openbsd-compat/rresvport.c \
+    openbsd-compat/setproctitle.c \
+    openbsd-compat/strmode.c \
+    openbsd-compat/strtonum.c \
+    openbsd-compat/timingsafe_bcmp.c \
+    openbsd-compat/vis.c \
+    openbsd-compat/xmmap.c \
+    packet.c \
+    poly1305.c \
+    readpass.c \
+    rijndael.c \
+    roaming_dummy.c \
+    rsa.c \
+    sc25519.c \
+    smult_curve25519_ref.c \
+    ssh-dss.c \
+    ssh-ecdsa.c \
+    ssh-ed25519.c \
+    ssh-rsa.c \
+    sshbuf-getput-basic.c \
+    sshbuf-getput-crypto.c \
+    sshbuf-misc.c \
+    sshbuf.c \
+    ssherr.c \
+    sshkey.c \
+    ttymodes.c \
+    uidswap.c \
+    umac.c \
+    umac128.c \
+    uuencode.c \
+    verify.c \
+    xmalloc.c
 
-#    openbsd-compat/getrrsetbyname.c
-#    openbsd-compat/xcrypt.c 
-
-LOCAL_C_INCLUDES := external/openssl/include external/zlib
-PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
+LOCAL_C_INCLUDES := \
+    external/zlib \
+    external/openssl/include \
+    external/openssh/openbsd-compat
 
 LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
 
 LOCAL_MODULE := libssh.gce
 
-LOCAL_CFLAGS+=-O3
+LOCAL_CFLAGS+=-O3 -Wno-unused-parameter
 
 include $(BUILD_SHARED_LIBRARY)
 
@@ -59,8 +141,12 @@ LOCAL_MODULE := ssh.gce
 LOCAL_POST_INSTALL_CMD := $(hide) ln -sf ssh.gce $(TARGET_OUT)/bin/ssh
 
 
-LOCAL_C_INCLUDES := external/openssl/include
-PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
+LOCAL_CFLAGS += -Wno-unused-parameter
+
+LOCAL_C_INCLUDES := \
+    external/zlib \
+    external/openssl/include \
+    external/openssh/openbsd-compat
 
 LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
 
@@ -78,8 +164,12 @@ LOCAL_SRC_FILES := \
 LOCAL_MODULE := sftp.gce
 LOCAL_POST_INSTALL_CMD := $(hide) ln -sf sftp.gce $(TARGET_OUT)/bin/sftp
 
-LOCAL_C_INCLUDES := external/openssl/include
-PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
+LOCAL_CFLAGS += -Wno-unused-parameter
+
+LOCAL_C_INCLUDES := \
+    external/zlib \
+    external/openssl/include \
+    external/openssh/openbsd-compat
 
 LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
 
@@ -92,13 +182,17 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
-    scp.c progressmeter.c bufaux.c
+    scp.c progressmeter.c
 
 LOCAL_MODULE := scp.gce
 LOCAL_POST_INSTALL_CMD := $(hide) ln -sf scp.gce $(TARGET_OUT)/bin/scp
 
-LOCAL_C_INCLUDES := external/openssl/include
-PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
+LOCAL_CFLAGS += -Wno-unused-parameter
+
+LOCAL_C_INCLUDES := \
+    external/zlib \
+    external/openssl/include \
+    external/openssh/openbsd-compat
 
 LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
 
@@ -111,28 +205,66 @@ include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
 
 LOCAL_SRC_FILES := \
-    sshd.c auth-rhosts.c auth-rsa.c auth-rh-rsa.c \
-	audit.c audit-bsm.c audit-linux.c platform.c \
-	sshpty.c sshlogin.c servconf.c serverloop.c \
-	auth.c auth1.c auth2.c auth-options.c session.c \
-	auth-chall.c auth2-chall.c groupaccess.c \
-	auth-skey.c auth-bsdauth.c auth2-hostbased.c auth2-kbdint.c \
-	auth2-none.c auth2-passwd.c auth2-pubkey.c auth2-jpake.c \
-	monitor_mm.c monitor.c monitor_wrap.c kexdhs.c kexgexs.c kexecdhs.c \
-	auth-krb5.c \
-	auth2-gss.c gss-serv.c gss-serv-krb5.c \
-	loginrec.c auth-pam.c auth-shadow.c auth-sia.c md5crypt.c \
-	sftp-server.c sftp-common.c \
-	roaming_common.c roaming_serv.c \
-	sandbox-null.c sandbox-rlimit.c sandbox-systrace.c sandbox-darwin.o
-
-# auth-passwd.c
+    audit-bsm.c \
+    audit-linux.c \
+    audit.c \
+    auth-bsdauth.c \
+    auth-chall.c \
+    auth-krb5.c \
+    auth-options.c \
+    auth-pam.c \
+    auth-rh-rsa.c \
+    auth-rhosts.c \
+    auth-rsa.c \
+    auth-shadow.c \
+    auth-sia.c \
+    auth-skey.c \
+    auth.c \
+    auth1.c \
+    auth2-chall.c \
+    auth2-gss.c \
+    auth2-hostbased.c \
+    auth2-kbdint.c \
+    auth2-none.c \
+    auth2-passwd.c \
+    auth2-pubkey.c \
+    auth2.c \
+    groupaccess.c \
+    gss-serv-krb5.c \
+    gss-serv.c \
+    kexc25519s.c \
+    kexdhs.c \
+    kexecdhs.c \
+    kexgexs.c \
+    loginrec.c \
+    md5crypt.c \
+    monitor.c \
+    monitor_mm.c \
+    monitor_wrap.c \
+    platform.c \
+    roaming_common.c \
+    roaming_serv.c \
+    sandbox-null.c \
+    sandbox-rlimit.c \
+    sandbox-systrace.c \
+    servconf.c \
+    serverloop.c \
+    session.c \
+    sftp-common.c \
+    sftp-server.c \
+    sshd.c \
+    sshlogin.c \
+    sshpty.c
 
 LOCAL_MODULE := sshd.gce
 LOCAL_POST_INSTALL_CMD := $(hide) ln -sf sshd.gce $(TARGET_OUT)/bin/sshd
 
-LOCAL_C_INCLUDES := external/openssl/include external/zlib
-PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
+LOCAL_CFLAGS += -Wno-unused-parameter
+
+LOCAL_C_INCLUDES := \
+    external/zlib \
+    external/openssl/include \
+    external/openssh/openbsd-compat
 
 LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz libcutils
 
@@ -150,8 +282,12 @@ LOCAL_SRC_FILES := \
 LOCAL_MODULE := ssh-keygen.gce
 LOCAL_POST_INSTALL_CMD := $(hide) ln -sf ssh-keygen.gce $(TARGET_OUT)/bin/ssh-keygen
 
-LOCAL_C_INCLUDES := external/openssl/include
-PRIVATE_C_INCLUDES := external/openssl/openbsd-compat
+LOCAL_CFLAGS += -Wno-unused-parameter
+
+LOCAL_C_INCLUDES := \
+    external/zlib \
+    external/openssl/include \
+    external/openssh/openbsd-compat
 
 LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
 

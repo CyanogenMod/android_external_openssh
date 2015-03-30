@@ -124,7 +124,7 @@
 #define DISABLE_WTMPX 1
 
 /* Enable for PKCS#11 support */
-#define ENABLE_PKCS11 /**/
+/* #define ENABLE_PKCS11 */
 
 /* File names may not contain backslash characters */
 /* #undef FILESYSTEM_NO_BACKSLASH */
@@ -222,6 +222,9 @@
 /* Define to 1 if you have the `clock' function. */
 #define HAVE_CLOCK 1
 
+/* Have clock_gettime */
+#define HAVE_CLOCK_GETTIME 1
+
 /* define if you have clock_t data type */
 #define HAVE_CLOCK_T 1
 
@@ -245,6 +248,12 @@
 
 /* Define if your libraries define daemon() */
 #define HAVE_DAEMON 1
+
+#define HAVE_DECL_HOWMANY 0
+
+/* Define to 1 if you have the declaration of `AI_NUMERICSERV', and to 0 if
+   you don't. */
+#define HAVE_DECL_AI_NUMERICSERV 1
 
 /* Define to 1 if you have the declaration of `authenticate', and to 0 if you
    don't. */
@@ -273,6 +282,10 @@
 /* Define to 1 if you have the declaration of `MAXSYMLINKS', and to 0 if you
    don't. */
 #define HAVE_DECL_MAXSYMLINKS 1
+
+/* Define to 1 if you have the declaration of `NFDBITS', and to 0 if you
+   don't. */
+#define HAVE_DECL_NFDBITS 1
 
 /* Define to 1 if you have the declaration of `offsetof', and to 0 if you
    don't. */
@@ -324,6 +337,12 @@
 /* Define to 1 if you have the `DSA_generate_parameters_ex' function. */
 #define HAVE_DSA_GENERATE_PARAMETERS_EX 1
 
+/* Define to 1 if you have the <elf.h> header file. */
+#define HAVE_ELF_H 1
+
+/* Define to 1 if you have the `endgrent' function. */
+#define HAVE_ENDGRENT 1
+
 /* Define to 1 if you have the <endian.h> header file. */
 #ifndef HAVE_ENDIAN_H
 #define HAVE_ENDIAN_H 1
@@ -337,6 +356,24 @@
 
 /* Define if your system has /etc/default/login */
 /* #undef HAVE_ETC_DEFAULT_LOGIN */
+
+/* Define if libcrypto has EVP_CIPHER_CTX_ctrl */
+#define HAVE_EVP_CIPHER_CTX_CTRL 1
+
+/* Define to 1 if you have the `EVP_DigestFinal_ex' function. */
+#define HAVE_EVP_DIGESTFINAL_EX 1
+
+/* Define to 1 if you have the `EVP_DigestInit_ex' function. */
+#define HAVE_EVP_DIGESTINIT_EX 1
+
+/* Define to 1 if you have the `EVP_MD_CTX_cleanup' function. */
+#define HAVE_EVP_MD_CTX_CLEANUP 1
+
+/* Define to 1 if you have the `EVP_MD_CTX_copy_ex' function. */
+#define HAVE_EVP_MD_CTX_COPY_EX 1
+
+/* Define to 1 if you have the `EVP_MD_CTX_init' function. */
+#define HAVE_EVP_MD_CTX_INIT 1
 
 /* Define to 1 if you have the `EVP_sha256' function. */
 #define HAVE_EVP_SHA256 1
@@ -503,6 +540,9 @@
 /* Define if HEADER.ad exists in arpa/nameser.h */
 #define HAVE_HEADER_AD 1
 
+/* Define to 1 if you have the `HMAC_CTX_init' function. */
+#define HAVE_HMAC_CTX_INIT 1
+
 /* Define if you have ut_host in utmp.h */
 #define HAVE_HOST_IN_UTMP 1
 
@@ -535,6 +575,9 @@
 
 /* define if you have int64_t data type */
 #define HAVE_INT64_T 1
+
+/* Define to 1 if the system has the type `intmax_t'. */
+#define HAVE_INTMAX_T 1
 
 /* Define to 1 if you have the <inttypes.h> header file. */
 #define HAVE_INTTYPES_H 1
@@ -599,6 +642,9 @@
 /* Define to 1 if you have the <linux/if_tun.h> header file. */
 #define HAVE_LINUX_IF_TUN_H 1
 
+/* Define to 1 if you have the <locale.h> header file. */
+#define HAVE_LOCALE_H 1
+
 /* Define if your libraries define login() */
 /* #define HAVE_LOGIN 1 */
 
@@ -625,6 +671,9 @@
 
 /* Define to 1 if you have the <maillock.h> header file. */
 /* #undef HAVE_MAILLOCK_H */
+
+/* Define to 1 if you have the `mblen' function. */
+#define HAVE_MBLEN 1
 
 /* Define to 1 if you have the `md5_crypt' function. */
 /* #undef HAVE_MD5_CRYPT */
@@ -732,18 +781,6 @@
 /* Define to 1 if you have the `pututxline' function. */
 #define HAVE_PUTUTXLINE 1
 
-/* Define if your password has a pw_change field */
-/* #undef HAVE_PW_CHANGE_IN_PASSWD */
-
-/* Define if your password has a pw_gecos field */
-/* #undef HAVE_PW_GECOS_IN_PASSWD */
-
-/* Define if your password has a pw_class field */
-/* #undef HAVE_PW_CLASS_IN_PASSWD */
-
-/* Define if your password has a pw_expire field */
-/* #undef HAVE_PW_EXPIRE_IN_PASSWD */
-
 /* Define to 1 if you have the `readpassphrase' function. */
 /* #undef HAVE_READPASSPHRASE */
 
@@ -809,6 +846,9 @@
 
 /* Define to 1 if you have the `setgroups' function. */
 #define HAVE_SETGROUPS 1
+
+/* Define to 1 if you have the `setlinebuf' function. */
+#define HAVE_SETLINEBUF 1
 
 /* Define to 1 if you have the `setlogin' function. */
 /* #undef HAVE_SETLOGIN */
@@ -936,6 +976,9 @@
 /* Define to 1 if you have the `strmode' function. */
 /* #undef HAVE_STRMODE */
 
+/* Define to 1 if you have the `strnlen' function. */
+#define HAVE_STRNLEN 1
+
 /* Define to 1 if you have the `strnvis' function. */
 /* #undef HAVE_STRNVIS */
 
@@ -953,6 +996,9 @@
 
 /* Define to 1 if you have the `strtoul' function. */
 #define HAVE_STRTOUL 1
+
+/* Define to 1 if you have the `strtoull' function. */
+#define HAVE_STRTOULL 1
 
 /* define if you have struct addrinfo data type */
 #define HAVE_STRUCT_ADDRINFO 1
@@ -1110,6 +1156,9 @@
 /* Define to 1 if you have the <ucred.h> header file. */
 /* #undef HAVE_UCRED_H */
 
+/* Define to 1 if the system has the type `uintmax_t'. */
+#define HAVE_UINTMAX_T 1
+
 /* define if you have uintxx_t data type */
 #define HAVE_UINTXX_T 1
 
@@ -1133,6 +1182,9 @@
 
 /* Define to 1 if you have the `user_from_uid' function. */
 /* #undef HAVE_USER_FROM_UID */
+
+/* Define to 1 if you have the `usleep' function. */
+#define HAVE_USLEEP 1
 
 /* Define to 1 if you have the <util.h> header file. */
 /* #undef HAVE_UTIL_H */
@@ -1277,15 +1329,6 @@
 /* Set this to your mail directory if you do not have _PATH_MAILDIR */
 /* #undef MAIL_DIRECTORY */
 
-/* Define on *nto-qnx systems */
-#define MISSING_FD_MASK 1
-
-/* Define on *nto-qnx systems */
-#define MISSING_HOWMANY 1
-
-/* Define on *nto-qnx systems */
-/* #undef MISSING_NFDBITS */
-
 /* Need setpgrp to acquire controlling tty */
 /* #undef NEED_SETPGRP */
 
@@ -1303,6 +1346,21 @@
 
 /* libcrypto includes complete ECC support */
 #define OPENSSL_HAS_ECC 1
+
+/* libcrypto has NID_X9_62_prime256v1 */
+#define OPENSSL_HAS_NISTP256 1
+
+/* libcrypto has NID_secp384r1 */
+#define OPENSSL_HAS_NISTP384 1
+
+/* libcrypto has NID_secp521r1 */
+#define OPENSSL_HAS_NISTP521 1
+
+/* libcrypto has EVP AES CTR */
+#define OPENSSL_HAVE_EVPCTR 1
+
+/* libcrypto has EVP AES GCM */
+#define OPENSSL_HAVE_EVPGCM 1
 
 /* libcrypto is missing AES 192 and 256 bit functions */
 /* #undef OPENSSL_LOBOTOMISED_AES */
@@ -1361,9 +1419,6 @@
 
 /* Define if your platform breaks doing a seteuid before a setuid */
 /* #undef SETEUID_BREAKS_SETUID */
-
-/* The size of `char', as computed by sizeof. */
-#define SIZEOF_CHAR 1
 
 /* The size of `int', as computed by sizeof. */
 #define SIZEOF_INT 4
@@ -1486,6 +1541,9 @@
 
 /* Define if you want IRIX project management */
 /* #undef WITH_IRIX_PROJECT */
+
+/* use libcrypto for cryptography */
+#define WITH_OPENSSL 1
 
 /* Define if you want SELinux support. */
 /* #undef WITH_SELINUX */
