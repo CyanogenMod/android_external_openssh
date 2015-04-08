@@ -1647,7 +1647,6 @@ main(int ac, char **av)
 		privsep_pw->pw_passwd = xstrdup("*");
 	}
 	}
-	endpwent();
 
 	/* load host keys */
 	sensitive_data.host_keys = xcalloc(options.num_host_key_files,
