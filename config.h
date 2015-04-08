@@ -172,13 +172,17 @@
 #define HAVE_ADDR_V6_IN_UTMPX 1
 
 /* Define to 1 if you have the `arc4random' function. */
-/* #undef HAVE_ARC4RANDOM */
+#define HAVE_ARC4RANDOM 1
 
 /* Define to 1 if you have the `arc4random_buf' function. */
-/* #undef HAVE_ARC4RANDOM_BUF */
+#define HAVE_ARC4RANDOM_BUF 1
+
+#ifndef __LP64__
+#define HAVE_ARC4RANDOM_STIR 1
+#endif
 
 /* Define to 1 if you have the `arc4random_uniform' function. */
-/* #undef HAVE_ARC4RANDOM_UNIFORM */
+#define HAVE_ARC4RANDOM_UNIFORM 1
 
 /* Define to 1 if you have the `asprintf' function. */
 #define HAVE_ASPRINTF 1
