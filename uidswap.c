@@ -30,7 +30,11 @@
 
 #ifdef ANDROID
 #include <private/android_filesystem_config.h>
+#if !defined(GCE_PLATFORM_SDK_VERSION) || (GCE_PLATFORM_SDK_VERSION >= 17)
 #include <sys/capability.h>
+#else
+#include <linux/capability.h>
+#endif
 #include <sys/prctl.h>
 #endif
 
