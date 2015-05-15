@@ -120,7 +120,7 @@ LOCAL_C_INCLUDES := \
 
 LOCAL_SHARED_LIBRARIES += libssl libcrypto libdl libz
 
-LOCAL_MODULE := libssh.gce
+LOCAL_MODULE := libssh
 
 LOCAL_CFLAGS+=-O3 -Wno-unused-parameter
 
@@ -137,8 +137,7 @@ LOCAL_SRC_FILES := \
     sshconnect.c sshconnect1.c sshconnect2.c mux.c \
     roaming_common.c roaming_client.c
 
-LOCAL_MODULE := ssh.gce
-LOCAL_POST_INSTALL_CMD := $(hide) ln -sf ssh.gce $(TARGET_OUT)/bin/ssh
+LOCAL_MODULE := ssh
 
 
 LOCAL_CFLAGS += -Wno-unused-parameter
@@ -148,7 +147,7 @@ LOCAL_C_INCLUDES := \
     external/openssl/include \
     external/openssh/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -161,8 +160,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := \
     sftp.c sftp-client.c sftp-common.c sftp-glob.c progressmeter.c
 
-LOCAL_MODULE := sftp.gce
-LOCAL_POST_INSTALL_CMD := $(hide) ln -sf sftp.gce $(TARGET_OUT)/bin/sftp
+LOCAL_MODULE := sftp
 
 LOCAL_CFLAGS += -Wno-unused-parameter
 
@@ -171,7 +169,7 @@ LOCAL_C_INCLUDES := \
     external/openssl/include \
     external/openssh/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -184,8 +182,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := \
     scp.c progressmeter.c
 
-LOCAL_MODULE := scp.gce
-LOCAL_POST_INSTALL_CMD := $(hide) ln -sf scp.gce $(TARGET_OUT)/bin/scp
+LOCAL_MODULE := scp
 
 LOCAL_CFLAGS += -Wno-unused-parameter
 
@@ -194,7 +191,7 @@ LOCAL_C_INCLUDES := \
     external/openssl/include \
     external/openssh/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -256,8 +253,7 @@ LOCAL_SRC_FILES := \
     sshlogin.c \
     sshpty.c
 
-LOCAL_MODULE := sshd.gce
-LOCAL_POST_INSTALL_CMD := $(hide) ln -sf sshd.gce $(TARGET_OUT)/bin/sshd
+LOCAL_MODULE := sshd
 
 LOCAL_CFLAGS += -Wno-unused-parameter
 
@@ -266,7 +262,7 @@ LOCAL_C_INCLUDES := \
     external/openssl/include \
     external/openssh/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz libcutils
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz libcutils
 
 include $(BUILD_EXECUTABLE)
 
@@ -279,8 +275,7 @@ LOCAL_MODULE_TAGS := optional
 LOCAL_SRC_FILES := \
     ssh-keygen.c
 
-LOCAL_MODULE := ssh-keygen.gce
-LOCAL_POST_INSTALL_CMD := $(hide) ln -sf ssh-keygen.gce $(TARGET_OUT)/bin/ssh-keygen
+LOCAL_MODULE := ssh-keygen
 
 LOCAL_CFLAGS += -Wno-unused-parameter
 
@@ -289,7 +284,7 @@ LOCAL_C_INCLUDES := \
     external/openssl/include \
     external/openssh/openbsd-compat
 
-LOCAL_SHARED_LIBRARIES += libssh.gce libssl libcrypto libdl libz
+LOCAL_SHARED_LIBRARIES += libssh libssl libcrypto libdl libz
 
 include $(BUILD_EXECUTABLE)
 
@@ -297,7 +292,7 @@ include $(BUILD_EXECUTABLE)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := sshd_config.gce
+LOCAL_MODULE := sshd_config
 LOCAL_MODULE_CLASS := ETC
 LOCAL_MODULE_PATH := $(TARGET_OUT_ETC)/ssh
 LOCAL_SRC_FILES := sshd_config.android
@@ -307,8 +302,7 @@ include $(BUILD_PREBUILT)
 
 include $(CLEAR_VARS)
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := start-ssh.gce
-LOCAL_POST_INSTALL_CMD := $(hide) ln -sf start-ssh.gce $(TARGET_OUT)/bin/start-ssh
+LOCAL_MODULE := start-ssh
 LOCAL_MODULE_CLASS := EXECUTABLES
 LOCAL_SRC_FILES := start-ssh
 include $(BUILD_PREBUILT)
