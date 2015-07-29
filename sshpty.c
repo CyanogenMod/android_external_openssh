@@ -73,16 +73,21 @@ pty_allocate(int *ptyfd, int *ttyfd, char *namebuf, size_t namebuflen)
 		return 0;
 	}
 #ifdef ANDROID
-	/* Android does not have a working ttyname() */
-	name = "/dev/ptmx";
+	if (ptsname_r(*ptyfd, namebuf, namebuflen)) {
+		fatal("openpty ptsname failed.");
+		close(*ptyfd);
+		*ptyfd = -1;
+		return -1;
+	}
+	return 1;
 #else
 	name = ttyname(*ttyfd);
 	if (!name)
 		fatal("openpty returns device for which ttyname fails.");
-#endif
 
 	strlcpy(namebuf, name, namebuflen);	/* possible truncation */
 	return 1;
+#endif
 }
 
 /* Releases the tty.  Its ownership is returned to root, and permissions to 0666. */
