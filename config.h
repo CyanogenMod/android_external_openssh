@@ -1594,8 +1594,10 @@
 /* type to use in place of socklen_t if not defined */
 /* #undef socklen_t */
 
+#ifndef SSHDIR
 #define SSHDIR "/data/ssh"
+#endif
 
-#define _PATH_PRIVSEP_CHROOT_DIR "/data/ssh/empty"
+#define _PATH_PRIVSEP_CHROOT_DIR SSHDIR "/empty"
 
 #define _PATH_SSH_PROGRAM "/system/bin/sftp"
