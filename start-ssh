@@ -4,22 +4,35 @@ umask 077
 
 # DEBUG=1
 
-DSA_KEY=/data/ssh/ssh_host_dsa_key
-DSA_PUB_KEY=/data/ssh/ssh_host_dsa_key.pub
-RSA_KEY=/data/ssh/ssh_host_rsa_key
-RSA_PUB_KEY=/data/ssh/ssh_host_rsa_key.pub
-AUTHORIZED_KEYS=/data/ssh/authorized_keys
+BASEDIR=/data/ssh
+DSA_KEY=$BASEDIR/ssh_host_dsa_key
+DSA_PUB_KEY=$BASEDIR/ssh_host_dsa_key.pub
+RSA_KEY=$BASEDIR/ssh_host_rsa_key
+RSA_PUB_KEY=$BASEDIR/ssh_host_rsa_key.pub
+AUTHORIZED_KEYS=$BASEDIR/authorized_keys
 DEFAULT_AUTHORIZED_KEYS=/system/etc/security/authorized_keys.default
+CONFIG=$BASEDIR/sshd_config
+DEFAULT_CONFIG=/system/etc/ssh/sshd_config
+
+if [ ! -d $BASEDIR ]; then
+    mkdir $BASEDIR
+    chmod 0750 $BASEDIR
+    chown root:shell $BASEDIR
+
+    mkdir $BASEDIR/empty
+    chmod 0600 $BASEDIR/empty
+    chown root:shell $BASEDIR/empty
+fi
 
 if [ ! -f $DSA_KEY ]; then
     /system/bin/ssh-keygen -t dsa -f $DSA_KEY -N ""
-    chmod 600 /$DSA_KEY
+    chmod 600 $DSA_KEY
     chmod 644 $DSA_PUB_KEY
 fi
 
 if [ ! -f $RSA_KEY ]; then
     /system/bin/ssh-keygen -t rsa -f $RSA_KEY -N ""
-    chmod 600 /$RSA_KEY
+    chmod 600 $RSA_KEY
     chmod 644 $RSA_PUB_KEY
 fi
 
@@ -27,11 +40,20 @@ if [[ ! -f $AUTHORIZED_KEYS && -f $DEFAULT_AUTHORIZED_KEYS ]]; then
     cat $DEFAULT_AUTHORIZED_KEYS > $AUTHORIZED_KEYS
 fi
 
+if [[ -f $AUTHORIZED_KEYS ]]; then
+    chmod 644 $AUTHORIZED_KEYS;
+fi
+
+if [[ ! -f $CONFIG && -f $DEFAULT_CONFIG ]]; then
+    cat $DEFAULT_CONFIG > $CONFIG
+    chmod 600 $CONFIG
+fi
+
 
 if [ "1" == "$DEBUG" ] ; then
     # run sshd in debug mode and capture output to logcat
-    /system/bin/logwrapper /system/bin/sshd -f /system/etc/ssh/sshd_config -D -d
+    /system/bin/logwrapper /system/bin/sshd -f $CONFIG -D -d
 else
     # don't daemonize - otherwise we can't stop the sshd service
-    /system/bin/sshd -f /system/etc/ssh/sshd_config -D
+    /system/bin/sshd -f $CONFIG -D
 fi

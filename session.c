@@ -1150,6 +1150,10 @@ do_setup_env(Session *s, const char *shell)
 	env = xcalloc(envsize, sizeof(char *));
 	env[0] = NULL;
 
+#ifdef ANDROID
+	copy_environment(environ, &env, &envsize);
+#endif
+
 #ifdef HAVE_CYGWIN
 	/*
 	 * The Windows environment contains some setting which are

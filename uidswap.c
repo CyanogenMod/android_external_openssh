@@ -233,14 +233,14 @@ permanently_set_uid(struct passwd *pw)
 		 * - AID_LOG to read system logs (adb logcat)
 		 * - AID_INPUT to diagnose input issues (getevent)
 		 * - AID_INET to diagnose network issues (netcfg, ping)
-		 * - AID_GRAPHICS to access the frame buffer
 		 * - AID_NET_BT and AID_NET_BT_ADMIN to diagnose bluetooth (hcidump)
+		 * - AID_SDCARD_R to allow reading from the SD card
 		 * - AID_SDCARD_RW to allow writing to the SD card
-		 * - AID_MOUNT to allow unmounting the SD card before rebooting
-		 * - AID_NET_BW_STATS to read out qtaguid statistics. */
-		gid_t groups[] = {AID_LOG,       AID_INPUT,  AID_INET,
-				  AID_GRAPHICS,  AID_NET_BT, AID_NET_BT_ADMIN,
-				  AID_SDCARD_RW, AID_MOUNT,  AID_NET_BW_STATS};
+		 * - AID_NET_BW_STATS to read out qtaguid statistics.
+		 * - AID_READPROC for reading /proc entries across UID boundaries */
+		gid_t groups[] = {AID_LOG,       AID_INPUT,        AID_INET,
+				  AID_NET_BT,    AID_NET_BT_ADMIN, AID_SDCARD_R,
+				  AID_SDCARD_RW, AID_NET_BW_STATS, AID_READPROC};
 		setgroups(sizeof(groups)/sizeof(groups[0]), groups);
 	}
 #endif
